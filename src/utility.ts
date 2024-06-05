@@ -54,8 +54,14 @@ export const DCRSize = (graph: DCRGraph): number => {
         eventMapSize(graph.milestonesFor)
 }
 
-export const HiDCRSize = (graph: HiDCRGraph): number => {
-    return Object.values(graph.spawns).reduce((acc, val) => acc + DCRSize(val), DCRSize(graph));
+export const OCDCRSize = (graph: HiDCRGraph): {
+    activities: number,
+    relations: number
+} => {
+    return {
+        activities: Object.values(graph.spawns).reduce((acc, val) => acc + val.events.size, graph.events.size),
+        relations: Object.values(graph.spawns).reduce((acc, val) => acc + val.events.size, graph.events.size)
+    };
 }
 
 export const LogAbsSize = (abs: LogAbstraction): number => {

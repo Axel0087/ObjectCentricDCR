@@ -2,7 +2,7 @@ import init from "./init";
 import { writeSerializedGraph } from "./src/fsInteraction";
 import loadDB, { dbFind } from "./src/loadDB";
 import { OCReplay, addOptimization } from "./src/objectCentric";
-import { flipEventMap, timer } from "./src/utility";
+import { OCDCRSize, flipEventMap, timer } from "./src/utility";
 import { Activity, ModelEntities, ModelRelations, OCEventLog, OCTrace, EventMap, DCRObject } from "./types";
 
 import createEventKnowledgeGraph from "./src/ekg";
@@ -273,6 +273,13 @@ const main = async () => {
     console.log(`
         Accepting traces (closure log): ${OCReplay(interFaceOCLog, model, model_entities)} / ${Object.keys(interFaceOCLog.traces).length}
     `);
+
+    const { activities, relations } = OCDCRSize(model);
+    console.log(`
+        Full model size:
+        ${activities} activities
+        ${relations} constraints
+    `)
 
     let count = 0;
     if (align) {
