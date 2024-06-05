@@ -70,7 +70,7 @@ const model_relations: ModelRelations = [
     { derivedEntityType: 'Case_WO', nt1: 'Workflow', nt2: 'Offer' }
 ];
 
-const csvPath = "path/to/BPI_Challenge_2017.csv";
+const csvPath = "./BPI_Challenge_2017.csv";
 
 const checkDBDoc = (dbDoc: any, row: any): boolean => {
     let retval = true;

@@ -887,8 +887,8 @@
                 "A_Accepted:COMPLETE": [],
                 "O_Created:COMPLETE": [
                     "O_Created:COMPLETE",
-                    "W_Complete application:SCHEDULE",
                     "W_Handle leads:SCHEDULE",
+                    "W_Complete application:SCHEDULE",
                     "W_Handle leads:START"
                 ],
                 "I_O_Created:COMPLETE_I": [],
@@ -903,8 +903,8 @@
                 "O_Returned:COMPLETE": [
                     "O_Returned:COMPLETE",
                     "W_Complete application:START",
-                    "W_Complete application:COMPLETE",
                     "W_Complete application:ATE_ABORT",
+                    "W_Complete application:COMPLETE",
                     "W_Shortened completion :START"
                 ],
                 "I_O_Returned:COMPLETE_I": [],

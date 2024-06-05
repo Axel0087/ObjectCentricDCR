@@ -60,7 +60,7 @@ export const OCDCRSize = (graph: HiDCRGraph): {
 } => {
     return {
         activities: Object.values(graph.spawns).reduce((acc, val) => acc + val.events.size, graph.events.size),
-        relations: Object.values(graph.spawns).reduce((acc, val) => acc + val.events.size, graph.events.size)
+        relations: Object.values(graph.spawns).reduce((acc, val) => acc + DCRSize(val), DCRSize(graph))
     };
 }
 
