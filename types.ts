@@ -70,8 +70,8 @@ export interface DCRGraph {
 
 // Counts number of activations
 export type FuzzyEventMap = {
-    [startEventId: Event]: {
-        [endEventId: Event]: number
+    [startEventId: string]: {
+        [endEventId: string]: number
     }
 }
 
@@ -87,13 +87,13 @@ export interface FuzzyDCRGraph {
 
 export type FuzzyHiDCRGraph = FuzzyDCRGraph & {
     spawns: {
-        [spawnEvent: Event]: FuzzyDCRGraph
+        [spawnEvent: string]: FuzzyDCRGraph
     }
 }
 
 export type HiDCRGraph = DCRGraph & {
     spawns: {
-        [eventId: Event]: DCRGraph;
+        [eventId: string]: DCRGraph;
     }
 }
 
@@ -103,23 +103,23 @@ export type Interface = string;
 
 export type Spawns = {
     spawns: {
-        [eventId: Event]: DCRObject;
+        [eventId: string]: DCRObject;
     }
 }
 
 export type DCRObject = DCRGraph & Spawns & {
     eventInterfaces: Set<Interface>,
     eventToInterface: {
-        [event: Event]: Interface;
+        [event: string]: Interface;
     }
     interfaceToEvent: {
-        [interfaceId: Interface]: Event;
+        [interfaceId: string]: Event;
     }
 }
 
 export type OCDCRGraph = DCRObject & {
     interfaceMap: {
-        [interfaceId: Interface]: Set<Event>;
+        [interfaceId: string]: Set<Event>;
     }
 }
 
@@ -155,9 +155,9 @@ export interface LogAbstraction {
 
 export type Activity = string;
 
-export type DirectlyFollowsGraph = { [activity: Activity]: Set<Activity> };
+export type DirectlyFollowsGraph = { [activity: string]: Set<Activity> };
 
-export type FuzzyDirectlyFollowsGraph = { [activity: Activity]: { [activity: Activity]: number } };
+export type FuzzyDirectlyFollowsGraph = { [activity: string]: { [activity: string]: number } };
 
 export interface ClassifiedTraces {
     [traceId: string]: boolean;
@@ -336,19 +336,19 @@ export interface BitDCRGraph {
 export type BitDCRObject = BitDCRGraph & {
     eventInterfaces: Set<Interface>,
     eventToInterface: {
-        [event: Event]: Interface;
+        [event: string]: Interface;
     },
     interfaceToEvent: {
-        [interfaceId: Interface]: Event;
+        [interfaceId: string]: Event;
     },
     spawns: {
-        [eventId: Event]: BitDCRObject;
+        [eventId: string]: BitDCRObject;
     }
 }
 
 export type BitOCDCRGraph = BitDCRObject & {
     interfaceMap: {
-        [interfaceId: Interface]: BitSet;
+        [interfaceId: string]: BitSet;
     }
 }
 
