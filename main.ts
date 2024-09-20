@@ -2,20 +2,20 @@ import init from "./init";
 import { writeSerializedGraph } from "./src/fsInteraction";
 import loadDB, { dbFind } from "./src/loadDB";
 import { OCReplay, addOptimization } from "./src/objectCentric";
-import { OCDCRSize, flipEventMap, timer } from "./src/utility";
+import { OCDCRSize, avg, flipEventMap, timer } from "./src/utility";
 import { Activity, ModelEntities, ModelRelations, OCEventLog, OCTrace, EventMap, DCRObject } from "./types";
 
 import createEventKnowledgeGraph from "./src/ekg";
 
 import { DisCoverOCDcrGraph, filterBasedOnAggregatedCorrelations, findConditionsResponses, findRelationClosures, getNonCoexistersAndNotSuccesion, initializeGetSubProcess, makeLogFromClosure, makeOCLogFromClosure, abstractLog, aggregateCorrelations } from "./src/ocDiscovery";
-import ocAlign, { BitEngine, bitExecutePP, bitGetEnabled, bitIsAccepting, bitOCExecutePP, bitOCIsEnabled, ocDCRToBitDCR } from "./src/ocAlign";
+import ocAlign, { BitEngine, alignCost, bitExecutePP, bitGetEnabled, bitIsAccepting, bitOCExecutePP, bitOCIsEnabled, ocDCRToBitDCR } from "./src/ocAlign";
 import { BitOCDCRGraphPP } from "./types";
 
 
 init();
 
 const sample = false;
-const align = false;
+const align = true;
 
 const rowFilter = (row: any) => {
     return (row.lifecycle === "SUSPEND" || row.lifecycle === "RESUME");
@@ -281,8 +281,13 @@ const main = async () => {
         ${relations} constraints
     `)
 
+    const timeout = 1000 * 60 * 5;
+    const totalTimeout = 1000 * 60 * 60 * 7;
+    const tStart = Date.now();
     let count = 0;
     if (align) {
+        let timeoutCount = 0;
+        const timings = [];
         for (const traceId in logWithSubprocess.traces) {
             const trace = logWithSubprocess.traces[traceId];
 
@@ -304,10 +309,22 @@ const main = async () => {
             }
 
             console.log("Aligning noisy trace...")
-            console.log("DONE! Cost: " + ocAlign(noisyTrace, bitModelPP, engine, spawnIds, model_entities).cost)
-            console.log("Took " + t.stop() / 1000 + " seconds");
-            if (++count === 10) break;
+            const alignment = await ocAlign(noisyTrace, bitModelPP, engine, spawnIds, model_entities, Infinity, Infinity, alignCost, timeout);
+            if (alignment === "TIMEOUT") {
+                timeoutCount++;
+                console.log("DONE! TIMEOUT...");
+            } else {
+                const timing = t.stop() / 1000;
+                console.log("DONE! Cost: " + alignment.cost)
+                console.log("Took " + timing + " seconds");
+                timings.push(timing);
+            }
+            ++count;
+            if (Date.now() - tStart > totalTimeout) break;
+            //if (++count === 20) break;
         }
+        console.log(`Timeouts: ${timeoutCount}/${count} - ${timeoutCount/count}`);
+        console.log("Avg non-timeout time (s): " + avg(timings));
     }
 }
 

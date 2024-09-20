@@ -90,7 +90,7 @@ export const ocDCRToBitDCR = (graph: OCDCRGraphPP, ids: Array<string>): BitOCDCR
     }
 }
 
-let alignCost: CostFun = (action, target) => {
+export let alignCost: CostFun = (action, target) => {
     switch (action) {
         case "consume":
             return 0;
@@ -254,7 +254,7 @@ export type BitEngine<T> = {
     executeStr: (event: string, graph: T) => void
 }
 
-export default (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: BitEngine<BitOCDCRGraphPP>, spawnIds: Array<string>, model_entities: ModelEntities, initMaxCost: number = Infinity, toDepth: number = Infinity, costFun: CostFun = alignCost): Alignment => {
+const align = (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: BitEngine<BitOCDCRGraphPP>, spawnIds: Array<string>, model_entities: ModelEntities, initMaxCost: number = Infinity, toDepth: number = Infinity, costFun: CostFun = alignCost, timeout: number = 1000 * 60 * 3): Alignment | "TIMEOUT" => {
     // Setup global variables
     const alignCost = costFun;
     const alignState: { [traceLen: number]: { [state: string]: number } } = {
@@ -263,16 +263,19 @@ export default (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: 
 
     const spawned: Array<string> = [];
 
+    const startTime = Date.now();
+
     let maxCost: number;
     const alignTrace = (
         trace: OCTrace<{ id: string }>,
         graph: BitOCDCRGraphPP,
         curCost: number = 0,
         curDepth: number = 0,
-    ): Alignment => {
+    ): Alignment | "TIMEOUT" => {
         // Futile to continue search along this path
         if (curCost >= maxCost) return { cost: Infinity, trace: [] };
         if (curDepth >= toDepth) return { cost: Infinity, trace: [] };
+        if (Date.now() - startTime > timeout) return "TIMEOUT";
 
         const stateStr = stateToStr(graph.marking, spawned);
         const traceLen = trace.length;
@@ -307,6 +310,7 @@ export default (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: 
                     curDepth + 1
                 );
             });
+            if (alignment === "TIMEOUT") return "TIMEOUT";
             if (alignment.cost < bestAlignment.cost) {
                 maxCost = alignment.cost;
                 alignment.trace.unshift(ocEventToString(trace[0], model_entities));
@@ -324,6 +328,7 @@ export default (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: 
                 curCost + alignCost("trace-skip", trace[0].activity),
                 curDepth + 1
             );
+            if (alignment === "TIMEOUT") return "TIMEOUT";
             if (alignment.cost < bestAlignment.cost) {
                 maxCost = alignment.cost;
                 bestAlignment = alignment;
@@ -344,6 +349,7 @@ export default (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: 
                 engine.executeStr(event, graph);
                 return alignTrace(trace, graph, curCost + alignCost("model-skip", event), curDepth + 1);
             });
+            if (alignment === "TIMEOUT") return "TIMEOUT";
             if (alignment.cost < bestAlignment.cost) {
                 alignment.trace.unshift(event);
                 maxCost = alignment.cost;
@@ -359,6 +365,7 @@ export default (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: 
                     engine.execute(event, graph);
                     return alignTrace(trace, graph, curCost + alignCost("model-skip", activity), curDepth + 1);
                 });
+                if (alignment === "TIMEOUT") return "TIMEOUT";
                 if (alignment.cost < bestAlignment.cost) {
                     alignment.trace.unshift(activity);
                     maxCost = alignment.cost;
@@ -370,15 +377,19 @@ export default (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: 
         return bestAlignment;
     };
 
-
-    maxCost = Math.min(initMaxCost, trace.map(event => costFun("trace-skip", event.activity)).reduce((acc, cur) => acc + cur, 0) + alignTrace([], graph).cost);
-
+    const emptyAlign = alignTrace([], graph);
+    if (emptyAlign === "TIMEOUT") return "TIMEOUT";
+    maxCost = Math.min(initMaxCost, trace.map(event => costFun("trace-skip", event.activity)).reduce((acc, cur) => acc + cur, 0) + (emptyAlign.cost));
+    console.log("Max Cost: " + maxCost);
     for (let i = 0; i <= trace.length; i++) {
         alignState[i] = {};
     }
 
     const alignment = alignTrace(trace, graph, 0);
+    if (alignment === "TIMEOUT") return "TIMEOUT";
     if (alignment.cost === Infinity) alignment.cost = maxCost;
 
     return alignment
 };
+
+export default align;

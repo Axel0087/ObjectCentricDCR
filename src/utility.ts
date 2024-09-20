@@ -117,6 +117,8 @@ export const safeUnion = (em: EventMap, key: string, val: Set<Event>) => {
     }
 }
 
+export const avg = (arr: Array<number>): number => arr.reduce((partialSum, a) => partialSum + a, 0) / arr.length;
+
 export const flipEventMap = (em: EventMap): EventMap => {
     const retval: EventMap = {};
     for (const event of Object.keys(em)) {
