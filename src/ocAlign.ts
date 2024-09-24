@@ -379,17 +379,20 @@ const align = (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: B
 
     const emptyAlign = alignTrace([], graph);
     if (emptyAlign === "TIMEOUT") return "TIMEOUT";
-    maxCost = Math.min(initMaxCost, trace.map(event => costFun("trace-skip", event.activity)).reduce((acc, cur) => acc + cur, 0) + (emptyAlign.cost));
-    console.log("Max Cost: " + maxCost);
-    for (let i = 0; i <= trace.length; i++) {
-        alignState[i] = {};
+    initMaxCost = Math.min(initMaxCost, trace.map(event => costFun("trace-skip", event.activity)).reduce((acc, cur) => acc + cur, 0) + (emptyAlign.cost));
+    //console.log("Max Cost: " + maxCost);
+    
+    for (maxCost = 5; maxCost <= initMaxCost; maxCost += 2) {
+        for (let i = 0; i <= trace.length; i++) {
+            alignState[i] = {};
+        }
+
+        const alignment = alignTrace(trace, graph, 0);
+        if (alignment === "TIMEOUT") return "TIMEOUT";
+        if (alignment.cost !== Infinity) return alignment;
     }
-
-    const alignment = alignTrace(trace, graph, 0);
-    if (alignment === "TIMEOUT") return "TIMEOUT";
-    if (alignment.cost === Infinity) alignment.cost = maxCost;
-
-    return alignment
+    
+    return { cost: Infinity, trace: [] };
 };
 
 export default align;

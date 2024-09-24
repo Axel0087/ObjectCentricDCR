@@ -15,7 +15,11 @@ import { BitOCDCRGraphPP } from "./types";
 init();
 
 const sample = false;
+
+// Align params
 const align = true;
+const totalTimeOutHours = 4;
+const timeOutMinutes = 5;
 
 const rowFilter = (row: any) => {
     return (row.lifecycle === "SUSPEND" || row.lifecycle === "RESUME");
@@ -281,13 +285,15 @@ const main = async () => {
         ${relations} constraints
     `)
 
-    const timeout = 1000 * 60 * 5;
-    const totalTimeout = 1000 * 60 * 60 * 7;
+    const timeout = 1000 * 60 * timeOutMinutes;
+    const totalTimeout = 1000 * 60 * 60 * totalTimeOutHours;
     const tStart = Date.now();
     let count = 0;
+    const totalTraces = Object.keys(logWithSubprocess.traces).length;
     if (align) {
         let timeoutCount = 0;
         const timings = [];
+
         for (const traceId in logWithSubprocess.traces) {
             const trace = logWithSubprocess.traces[traceId];
 
@@ -308,7 +314,7 @@ const main = async () => {
                 executeStr: bitExecutePP,
             }
 
-            console.log("Aligning noisy trace...")
+            console.log(`Aligning noisy trace... (${++count}/${totalTraces})`);
             const alignment = await ocAlign(noisyTrace, bitModelPP, engine, spawnIds, model_entities, Infinity, Infinity, alignCost, timeout);
             if (alignment === "TIMEOUT") {
                 timeoutCount++;
@@ -319,12 +325,15 @@ const main = async () => {
                 console.log("Took " + timing + " seconds");
                 timings.push(timing);
             }
-            ++count;
-            if (Date.now() - tStart > totalTimeout) break;
-            //if (++count === 20) break;
+            console.log("");
+            console.log(`Timeouts: ${timeoutCount}/${count} - ${timeoutCount/count}`);
+            console.log("Avg non-timeout time (s): " + avg(timings) + "\n");
+            if (Date.now() - tStart > totalTimeout) {
+                console.log(`This has taken ${totalTimeOutHours} hours... I'm out...\n`);
+                break;            
+            }//if (++count === 20) break;
         }
-        console.log(`Timeouts: ${timeoutCount}/${count} - ${timeoutCount/count}`);
-        console.log("Avg non-timeout time (s): " + avg(timings));
+
     }
 }
 
