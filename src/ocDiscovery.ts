@@ -1,5 +1,5 @@
 import { EventKnowledgeGraph, LogAbstraction, ModelEntities, OCDCRGraph, Event, DCRObject, EventMap, Activity, EntityType, EventLog, EventNode, OCTrace, OCEventLog, Trace } from "../types";
-import { DCRSize, copyEventMap, copySet } from "./utility";
+import { DCRSize, copyEventMap, copySet, flipEventMap, timer } from "./utility";
 
 const eventToInterface = (event: Event) => "I_" + event + "_I";
 
@@ -653,4 +653,85 @@ export const findConditionsResponses = (log: OCEventLog<{ id: string }>, model_e
     }
 
     return retval;
+}
+
+export const discover = (graph: EventKnowledgeGraph, subprocess_entities: Array<string>, model_entities: ModelEntities, model_entities_derived: Array<string>) => {
+    console.log("Discovering Base Graph...");
+    let t = timer();
+
+    const model = DisCoverOCDcrGraph(graph, model_entities_derived, model_entities);
+    console.log("DONE! Took " + t.stop() / 1000 + " seconds");
+
+    console.log("Finding closures...");
+    t = timer();
+
+    const closures = findRelationClosures(graph);
+
+    console.log("DONE! Took " + t.stop() / 1000 + " seconds");
+
+    console.log("Making closure log...");
+    t = timer();
+
+    const interfaceLog = makeLogFromClosure(closures, graph);
+
+    console.log("DONE! Took " + t.stop() / 1000 + " seconds");
+
+    console.log("Finding interface exclusions...");
+    t = timer();
+
+    const interfaceAbs = abstractLog(interfaceLog);
+
+    const aggregatedCorrelations = aggregateCorrelations(graph);
+
+    const interfaceAtMostOnce = filterBasedOnAggregatedCorrelations(interfaceAbs.atMostOnce, subprocess_entities, aggregatedCorrelations);
+
+    const { getSubProcessGraph, getSubProcess } = initializeGetSubProcess(aggregatedCorrelations, model_entities);
+
+    for (const activity of interfaceAtMostOnce) {
+        if (getSubProcess(activity) === "") continue;
+        const subProcessGraph = getSubProcessGraph(model, activity);
+        const interfaceEvent = subProcessGraph.eventToInterface[activity];
+        subProcessGraph.excludesTo[interfaceEvent].add(interfaceEvent);
+    }
+
+    const { nonCoExisters, precedesButNeverSucceeds } = getNonCoexistersAndNotSuccesion(interfaceAbs, subprocess_entities, aggregatedCorrelations);
+
+    for (const event in precedesButNeverSucceeds) {
+        if (getSubProcess(event) === "") continue;
+        const subProcessGraph = getSubProcessGraph(model, event);
+        const interfaceEvent = subProcessGraph.eventToInterface[event];
+        for (const s of precedesButNeverSucceeds[event]) {
+            if (!interfaceAtMostOnce.has(s)) {
+                subProcessGraph.excludesTo[interfaceEvent].add(getSubProcessGraph(model, s).eventToInterface[s]);
+            }
+        }
+    }
+
+    const addInterFaceConstraints = (rel: EventMap, key: string) => {
+        for (const activity in rel) {
+            if (getSubProcess(activity) === "") continue;
+            const subProcessGraph = getSubProcessGraph(model, activity);
+            const interfaceEvent = subProcessGraph.eventToInterface[activity];
+            const setToUnion = new Set([...rel[activity]].map(otherActivity => subProcessGraph.eventToInterface[otherActivity]));
+            (subProcessGraph[key as keyof DCRObject] as EventMap)[interfaceEvent].union(setToUnion);
+        }
+    }
+
+    addInterFaceConstraints(nonCoExisters, "excludesTo");
+
+    console.log("DONE! Took " + t.stop() / 1000 + " seconds");
+
+    const interFaceOCLog = makeOCLogFromClosure(closures, graph, model_entities, subprocess_entities);
+
+    console.log("Finding interface conditions / responses...");
+    t = timer();
+
+    const { conditions, responses } = findConditionsResponses(interFaceOCLog, model_entities);
+
+    addInterFaceConstraints(conditions, "conditionsFor");
+    addInterFaceConstraints(responses, "responseTo");
+
+    console.log("DONE! Took " + t.stop() / 1000 + " seconds");
+
+    return model;
 }

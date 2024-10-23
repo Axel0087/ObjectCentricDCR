@@ -1,4 +1,8 @@
-./build
+build
+badAlignTraces
+FullModel
+
+BPI_Challenge_2017.csv
 
 # Logs
 logs

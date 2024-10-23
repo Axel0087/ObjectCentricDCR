@@ -1,16 +1,17 @@
 import init from "./init";
 import { writeSerializedGraph } from "./src/fsInteraction";
-import loadDB, { dbFind } from "./src/loadDB";
+import loadDB, { dbFind, generateOCLog, getEventId, isPartOfSubprocess } from "./src/loadDB";
 import { OCReplay, addOptimization } from "./src/objectCentric";
 import { OCDCRSize, avg, flipEventMap, timer } from "./src/utility";
 import { Activity, ModelEntities, ModelRelations, OCEventLog, OCTrace, EventMap, DCRObject } from "./types";
 
 import createEventKnowledgeGraph from "./src/ekg";
 
-import { DisCoverOCDcrGraph, filterBasedOnAggregatedCorrelations, findConditionsResponses, findRelationClosures, getNonCoexistersAndNotSuccesion, initializeGetSubProcess, makeLogFromClosure, makeOCLogFromClosure, abstractLog, aggregateCorrelations } from "./src/ocDiscovery";
+import { DisCoverOCDcrGraph, filterBasedOnAggregatedCorrelations, findConditionsResponses, findRelationClosures, getNonCoexistersAndNotSuccesion, initializeGetSubProcess, makeLogFromClosure, makeOCLogFromClosure, abstractLog, aggregateCorrelations, discover } from "./src/ocDiscovery";
 import ocAlign, { BitEngine, alignCost, bitExecutePP, bitGetEnabled, bitIsAccepting, bitOCExecutePP, bitOCIsEnabled, ocDCRToBitDCR } from "./src/ocAlign";
 import { BitOCDCRGraphPP } from "./types";
 
+import fs from "fs";
 
 init();
 
@@ -76,62 +77,6 @@ const model_relations: ModelRelations = [
 
 const csvPath = "./BPI_Challenge_2017.csv";
 
-const checkDBDoc = (dbDoc: any, row: any): boolean => {
-    let retval = true;
-    for (const key in dbDoc) {
-        if (key === "$or") {
-            retval = retval && (dbDoc[key] as Array<any>).reduce((acc, val) => acc || checkDBDoc(val, row), false);
-        } else if (key === "$and") {
-            retval = retval && (dbDoc[key] as Array<any>).reduce((acc, val) => acc && checkDBDoc(val, row), true);
-        } else if (key === "$not") {
-            retval = retval && !(checkDBDoc(dbDoc[key], row))
-        } else {
-            retval = retval && (dbDoc[key] === row[key]);
-        }
-    }
-    return retval;
-}
-
-
-const isPartOfSubprocess = (row: any) => {
-    for (const entity in model_entities) {
-        if (row.Activity + ":" + row.lifecycle === model_entities[entity].subprocessInitializer) return true;
-        if (model_entities[entity].subprocessInitializer !== undefined && checkDBDoc(model_entities[entity].dbDoc, row)) return true;
-    }
-    return false;
-}
-
-const getEventId = (row: any): string => {
-    for (const entity in model_entities) {
-        if (row.Activity + ":" + row.lifecycle === model_entities[entity].subprocessInitializer) return row[model_entities[entity].idField];
-    }
-    for (const entity in model_entities) {
-        if (checkDBDoc(model_entities[entity].dbDoc, row)) return row[model_entities[entity].idField];
-    }
-    throw new Error("Mismatching row!");
-}
-
-const generateOCLog = async (db: Nedb<any>, rowToActivity: (row: any) => { activity: Activity, attr: { id: string } }): Promise<OCEventLog<{ id: string }>> => {
-    console.log("Generating log");
-    const rawTraces: { [traceId: string]: Array<{ event: { activity: string, attr: { id: string } }, timestamp: Date }> } = {};
-    const log: OCEventLog<{ id: string }> = {
-        activities: new Set(),
-        traces: {}
-    };
-    for (const row of await dbFind(db, {})) {
-        if (!rawTraces[row.case]) {
-            rawTraces[row.case] = [];
-        }
-        const event = rowToActivity(row)
-        log.activities.add(event.activity);
-        rawTraces[row.case].push({ event, timestamp: new Date(row.timestamp) });
-    }
-    for (const traceId in rawTraces) {
-        log.traces[traceId] = rawTraces[traceId].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()).map(en => en.event);
-    }
-
-    return log;
-}
 
 const getRandomInt = (min: number, max: number): number => {
     const minCeiled = Math.ceil(min);
@@ -186,90 +131,17 @@ const main = async () => {
     console.log("DONE! Took " + t.stop() / 1000 + " seconds");
     const graph = await createEventKnowledgeGraph(db, include_entities, model_entities, model_relations);
 
-    const aggCorrInv = flipEventMap(aggregateCorrelations(graph));
-    const subProcessEvents = new Set(subprocess_entities.flatMap((ent) => [model_entities[ent].subprocessInitializer as string, ...aggCorrInv[ent]]));
-
-    console.log("Discovering Base Graph...");
-    t = timer();
-
-    const model = DisCoverOCDcrGraph(graph, model_entities_derived, model_entities);
-    console.log("DONE! Took " + t.stop() / 1000 + " seconds");
-
-    console.log("Finding closures...");
-    t = timer();
-
-    const closures = findRelationClosures(graph);
-
-    console.log("DONE! Took " + t.stop() / 1000 + " seconds");
-
-    console.log("Making closure log...");
-    t = timer();
-
-    const interfaceLog = makeLogFromClosure(closures, graph);
-
-    console.log("DONE! Took " + t.stop() / 1000 + " seconds");
-
-    console.log("Finding interface exclusions...");
-    t = timer();
-
-    const interfaceAbs = abstractLog(interfaceLog);
-
-    const aggregatedCorrelations = aggregateCorrelations(graph);
-
-    const interfaceAtMostOnce = filterBasedOnAggregatedCorrelations(interfaceAbs.atMostOnce, subprocess_entities, aggregatedCorrelations);
-
-    const { getSubProcessGraph, getSubProcess } = initializeGetSubProcess(aggregatedCorrelations, model_entities);
-
-    for (const activity of interfaceAtMostOnce) {
-        if (getSubProcess(activity) === "") continue;
-        const subProcessGraph = getSubProcessGraph(model, activity);
-        const interfaceEvent = subProcessGraph.eventToInterface[activity];
-        subProcessGraph.excludesTo[interfaceEvent].add(interfaceEvent);
-    }
-
-    const { nonCoExisters, precedesButNeverSucceeds } = getNonCoexistersAndNotSuccesion(interfaceAbs, subprocess_entities, aggregatedCorrelations);
-
-    for (const event in precedesButNeverSucceeds) {
-        if (getSubProcess(event) === "") continue;
-        const subProcessGraph = getSubProcessGraph(model, event);
-        const interfaceEvent = subProcessGraph.eventToInterface[event];
-        for (const s of precedesButNeverSucceeds[event]) {
-            if (!interfaceAtMostOnce.has(s)) {
-                subProcessGraph.excludesTo[interfaceEvent].add(getSubProcessGraph(model, s).eventToInterface[s]);
-            }
-        }
-    }
-
-    const addInterFaceConstraints = (rel: EventMap, key: string) => {
-        for (const activity in rel) {
-            if (getSubProcess(activity) === "") continue;
-            const subProcessGraph = getSubProcessGraph(model, activity);
-            const interfaceEvent = subProcessGraph.eventToInterface[activity];
-            const setToUnion = new Set([...rel[activity]].map(otherActivity => subProcessGraph.eventToInterface[otherActivity]));
-            (subProcessGraph[key as keyof DCRObject] as EventMap)[interfaceEvent].union(setToUnion);
-        }
-    }
-
-    addInterFaceConstraints(nonCoExisters, "excludesTo");
-
-    console.log("DONE! Took " + t.stop() / 1000 + " seconds");
-
-    const interFaceOCLog = makeOCLogFromClosure(closures, graph, model_entities, subprocess_entities);
-
-    console.log("Finding interface conditions / responses...");
-    t = timer();
-
-    const { conditions, responses } = findConditionsResponses(interFaceOCLog, model_entities);
-
-    addInterFaceConstraints(conditions, "conditionsFor");
-    addInterFaceConstraints(responses, "responseTo");
-
-    console.log("DONE! Took " + t.stop() / 1000 + " seconds");
+    const model = discover(graph, subprocess_entities, model_entities, model_entities_derived);
 
     console.log("Writing model...");
     writeSerializedGraph(model, "FullModel");
 
-    const logWithSubprocess: OCEventLog<{ id: string }> = await generateOCLog(db, (row) => ({ activity: row.Activity + ":" + row.lifecycle, attr: { id: (isPartOfSubprocess(row) ? getEventId(row) : "") } }));
+    const logWithSubprocess: OCEventLog<{ id: string }> = await generateOCLog(db, (row) => ({
+        activity: row.Activity + ":" + row.lifecycle,
+        attr: { id: (isPartOfSubprocess(row, model_entities) ? getEventId(row, model_entities) : "") }
+    }));
+    const closures = findRelationClosures(graph);
+    const interFaceOCLog = makeOCLogFromClosure(closures, graph, model_entities, subprocess_entities);
 
     console.log(`
         Accepting traces (flattened by case): ${OCReplay(logWithSubprocess, model, model_entities)} / ${Object.keys(logWithSubprocess.traces).length}
@@ -294,6 +166,8 @@ const main = async () => {
         let timeoutCount = 0;
         const timings = [];
 
+        const aggCorrInv = flipEventMap(aggregateCorrelations(graph));
+        const subProcessEvents = new Set(subprocess_entities.flatMap((ent) => [model_entities[ent].subprocessInitializer as string, ...aggCorrInv[ent]]));
         for (const traceId in logWithSubprocess.traces) {
             const trace = logWithSubprocess.traces[traceId];
 
@@ -318,6 +192,7 @@ const main = async () => {
             const alignment = await ocAlign(noisyTrace, bitModelPP, engine, spawnIds, model_entities, Infinity, Infinity, alignCost, timeout);
             if (alignment === "TIMEOUT") {
                 timeoutCount++;
+                fs.writeFileSync("badAlignTraces/" + traceId + ".json", JSON.stringify(noisyTrace));
                 console.log("DONE! TIMEOUT...");
             } else {
                 const timing = t.stop() / 1000;
@@ -326,12 +201,12 @@ const main = async () => {
                 timings.push(timing);
             }
             console.log("");
-            console.log(`Timeouts: ${timeoutCount}/${count} - ${timeoutCount/count}`);
+            console.log(`Timeouts: ${timeoutCount}/${count} - ${timeoutCount / count}`);
             console.log("Avg non-timeout time (s): " + avg(timings) + "\n");
             if (Date.now() - tStart > totalTimeout) {
                 console.log(`This has taken ${totalTimeOutHours} hours... I'm out...\n`);
-                break;            
-            }//if (++count === 20) break;
+                break;
+            }
         }
 
     }
