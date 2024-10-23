@@ -1,13 +1,13 @@
 import init from "./init";
 import { writeSerializedGraph } from "./src/fsInteraction";
-import loadDB, { dbFind, generateOCLog, getEventId, isPartOfSubprocess } from "./src/loadDB";
+import loadDB, { generateOCLog, getEventId, isPartOfSubprocess } from "./src/loadDB";
 import { OCReplay, addOptimization } from "./src/objectCentric";
 import { OCDCRSize, avg, copyEventMap, flipEventMap, timer } from "./src/utility";
-import { Activity, ModelEntities, ModelRelations, OCEventLog, OCTrace, EventMap, DCRObject } from "./types";
+import { Activity, ModelEntities, ModelRelations, OCEventLog, OCTrace } from "./types";
 
 import createEventKnowledgeGraph from "./src/ekg";
 
-import { DisCoverOCDcrGraph, filterBasedOnAggregatedCorrelations, findConditionsResponses, findRelationClosures, getNonCoexistersAndNotSuccesion, initializeGetSubProcess, makeLogFromClosure, makeOCLogFromClosure, abstractLog, aggregateCorrelations, discover } from "./src/ocDiscovery";
+import { findRelationClosures, makeOCLogFromClosure, aggregateCorrelations, discover } from "./src/ocDiscovery";
 import ocAlign, { BitEngine, alignCost, bitExecutePP, bitGetEnabled, bitIsAccepting, bitOCExecutePP, bitOCIsEnabled, ocDCRToBitDCR } from "./src/ocAlign";
 import { BitOCDCRGraphPP } from "./types";
 
@@ -20,7 +20,7 @@ const sample = false;
 // Align params
 const align = true;
 const totalTimeOutHours = 4;
-const timeOutMinutes = 5;
+const timeOutMinutes = 3;
 
 const rowFilter = (row: any) => {
     return (row.lifecycle === "SUSPEND" || row.lifecycle === "RESUME");
@@ -165,6 +165,7 @@ const main = async () => {
     if (align) {
         let timeoutCount = 0;
         const timings = [];
+        const costs = [];
 
         const aggCorr = aggregateCorrelations(graph);
         const aggCorrInv = flipEventMap(aggCorr);
@@ -172,7 +173,7 @@ const main = async () => {
         for (const traceId in logWithSubprocess.traces) {
             const trace = logWithSubprocess.traces[traceId];
 
-            const noisyTrace = noisify(trace, 0.1, logWithSubprocess.activities, subProcessEvents);
+            const noisyTrace = noisify(trace, 0.4, logWithSubprocess.activities, subProcessEvents);
 
             const spawnIds = noisyTrace.map(event => event.attr.id).filter(id => id !== "");
             const t = timer();
@@ -205,10 +206,12 @@ const main = async () => {
                 console.log("DONE! Cost: " + alignment.cost)
                 console.log("Took " + timing + " seconds");
                 timings.push(timing);
+                costs.push(alignment.cost);
             }
             console.log("");
             console.log(`Timeouts: ${timeoutCount}/${count} - ${timeoutCount / count}`);
             console.log("Avg non-timeout time (s): " + avg(timings) + "\n");
+            console.log("Avg costs (s): " + avg(costs) + "\n");
             if (Date.now() - tStart > totalTimeout) {
                 console.log(`This has taken ${totalTimeOutHours} hours... I'm out...\n`);
                 break;
