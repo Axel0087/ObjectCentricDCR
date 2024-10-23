@@ -2,7 +2,7 @@ import init from "./init";
 import { writeSerializedGraph } from "./src/fsInteraction";
 import loadDB, { dbFind, generateOCLog, getEventId, isPartOfSubprocess } from "./src/loadDB";
 import { OCReplay, addOptimization } from "./src/objectCentric";
-import { OCDCRSize, avg, flipEventMap, timer } from "./src/utility";
+import { OCDCRSize, avg, copyEventMap, flipEventMap, timer } from "./src/utility";
 import { Activity, ModelEntities, ModelRelations, OCEventLog, OCTrace, EventMap, DCRObject } from "./types";
 
 import createEventKnowledgeGraph from "./src/ekg";
@@ -166,7 +166,8 @@ const main = async () => {
         let timeoutCount = 0;
         const timings = [];
 
-        const aggCorrInv = flipEventMap(aggregateCorrelations(graph));
+        const aggCorr = aggregateCorrelations(graph);
+        const aggCorrInv = flipEventMap(aggCorr);
         const subProcessEvents = new Set(subprocess_entities.flatMap((ent) => [model_entities[ent].subprocessInitializer as string, ...aggCorrInv[ent]]));
         for (const traceId in logWithSubprocess.traces) {
             const trace = logWithSubprocess.traces[traceId];
@@ -188,8 +189,13 @@ const main = async () => {
                 executeStr: bitExecutePP,
             }
 
+            const aggCorrFilt = copyEventMap(aggCorr);
+            for (const key in aggCorrFilt) {
+                aggCorrFilt[key].difference(new Set(model_entities_derived));
+            }
+
             console.log(`Aligning noisy trace... (${++count}/${totalTraces})`);
-            const alignment = await ocAlign(noisyTrace, bitModelPP, engine, spawnIds, model_entities, Infinity, Infinity, alignCost, timeout);
+            const alignment = await ocAlign(noisyTrace, bitModelPP, engine, model_entities, aggCorrFilt, Infinity, Infinity, alignCost, timeout);
             if (alignment === "TIMEOUT") {
                 timeoutCount++;
                 fs.writeFileSync("badAlignTraces/" + traceId + ".json", JSON.stringify(noisyTrace));

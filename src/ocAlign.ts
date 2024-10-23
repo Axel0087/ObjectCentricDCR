@@ -1,6 +1,6 @@
 import { DCRObject, OCDCRGraphPP, Event, EventMap, OCEvent, OCTrace, ModelEntities, Alignment, CostFun, BitDCRObject, BitEventMap, BitMarking, BitOCDCRGraph, BitOCDCRGraphPP, BitSet } from "../types";
 import { getSpawnedEvent, ocEventToString } from "./objectCentric";
-import { copySet } from "./utility";
+import { copyEventMap, copySet, flipEventMap } from "./utility";
 
 // Makes deep copy of a eventMap
 export const copyBitEventMap = (eventMap: BitEventMap): BitEventMap => {
@@ -254,12 +254,54 @@ export type BitEngine<T> = {
     executeStr: (event: string, graph: T) => void
 }
 
-const align = (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: BitEngine<BitOCDCRGraphPP>, spawnIds: Array<string>, model_entities: ModelEntities, initMaxCost: number = Infinity, toDepth: number = Infinity, costFun: CostFun = alignCost, timeout: number = 1000 * 60 * 3): Alignment | "TIMEOUT" => {
+const align = (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: BitEngine<BitOCDCRGraphPP>, model_entities: ModelEntities, aggCorrFilt: EventMap, initMaxCost: number = Infinity, toDepth: number = Infinity, costFun: CostFun = alignCost, timeout: number = 1000 * 60 * 3): Alignment | "TIMEOUT" => {
     // Setup global variables
     const alignCost = costFun;
     const alignState: { [traceLen: number]: { [state: string]: number } } = {
         0: {}
     };
+
+    // Static trace iteration computing missing spawn ids for each spawn activity
+    // Preprocess
+    const entityTypeToSpawnActivity: { [entityType: string]: string } = {};
+    const spawnActivityToEntityType: { [spawnActivity: string]: string } = {};
+    for (const key in model_entities) {
+        const spawnActivity = model_entities[key].subprocessInitializer;
+        if (spawnActivity !== undefined) {
+            entityTypeToSpawnActivity[key] = spawnActivity;
+            spawnActivityToEntityType[spawnActivity] = key;
+        }
+    }
+
+    const spawnActivities = Object.keys(model_entities).map((key) => model_entities[key].subprocessInitializer).filter((val) => val !== undefined) as Array<string>;
+    const spawnedEntities: { [entityType: string]: Set<string> } = {}
+    const missingSpawns: { [spawnActivity: string]: Set<string> } = {};
+    for (const activity of spawnActivities) {
+        const entityT = spawnActivityToEntityType[activity];
+        missingSpawns[activity] = new Set();
+        spawnedEntities[entityT] = new Set();
+    }
+    // Compute missing spawn events
+    for (const event of trace) {
+        if (event.attr.id) {
+            if (spawnActivities.includes(event.activity)) {
+                const entityT = spawnActivityToEntityType[event.activity];
+                spawnedEntities[entityT].add(event.attr.id);
+            }
+            else {
+                for (const entityT of aggCorrFilt[event.activity]) {
+                    if (!spawnedEntities[entityT].has(event.attr.id)) {
+                        const spawnEvent = entityTypeToSpawnActivity[entityT];
+                        missingSpawns[spawnEvent].add(event.attr.id);
+                    }
+                }
+            }
+        }
+    }
+    // --------------------------------------------------------
+
+    //console.log(spawnedEntities);
+    //console.log(missingSpawns);
 
     const spawned: Array<string> = [];
 
@@ -358,18 +400,19 @@ const align = (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: B
         }
 
         if (spawn) {
-            const activity = "O_Create Offer:COMPLETE";
-            for (const spawnId of spawnIds) {
-                const event = { activity, attr: { id: spawnId } };
-                const alignment = newGraphEnv(graph, activity, () => {
-                    engine.execute(event, graph);
-                    return alignTrace(trace, graph, curCost + alignCost("model-skip", activity), curDepth + 1);
-                });
-                if (alignment === "TIMEOUT") return "TIMEOUT";
-                if (alignment.cost < bestAlignment.cost) {
-                    alignment.trace.unshift(activity);
-                    maxCost = alignment.cost;
-                    bestAlignment = alignment;
+            for (const activity of spawnActivities) {
+                for (const spawnId of missingSpawns[activity]) {
+                    const event = { activity, attr: { id: spawnId } };
+                    const alignment = newGraphEnv(graph, activity, () => {
+                        engine.execute(event, graph);
+                        return alignTrace(trace, graph, curCost + alignCost("model-skip", activity), curDepth + 1);
+                    });
+                    if (alignment === "TIMEOUT") return "TIMEOUT";
+                    if (alignment.cost < bestAlignment.cost) {
+                        alignment.trace.unshift(activity);
+                        maxCost = alignment.cost;
+                        bestAlignment = alignment;
+                    }
                 }
             }
         }
@@ -381,7 +424,7 @@ const align = (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: B
     if (emptyAlign === "TIMEOUT") return "TIMEOUT";
     initMaxCost = Math.min(initMaxCost, trace.map(event => costFun("trace-skip", event.activity)).reduce((acc, cur) => acc + cur, 0) + (emptyAlign.cost));
     //console.log("Max Cost: " + maxCost);
-    
+
     for (maxCost = 5; maxCost <= initMaxCost; maxCost += 2) {
         for (let i = 0; i <= trace.length; i++) {
             alignState[i] = {};
@@ -391,7 +434,7 @@ const align = (trace: OCTrace<{ id: string }>, graph: BitOCDCRGraphPP, engine: B
         if (alignment === "TIMEOUT") return "TIMEOUT";
         if (alignment.cost !== Infinity) return alignment;
     }
-    
+
     return { cost: Infinity, trace: [] };
 };
 
