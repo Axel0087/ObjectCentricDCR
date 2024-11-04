@@ -498,7 +498,7 @@ export const findRelationClosures = (ekg: EventKnowledgeGraph): Array<Set<string
     }
     let retArr: Array<Set<string>> = [];
     while (entities.size !== 0) {
-        const entity = entities.values().next().value;
+        const entity = entities.values().next().value as string;
         if (!ekg.entityRels[entity]) {
             entities.delete(entity);
             continue;

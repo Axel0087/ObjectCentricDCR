@@ -1,0 +1,192 @@
+import { OCDCRGraph } from "../types";
+
+const evaluationGraph: OCDCRGraph = {
+    events: new Set(["a", "b", "c", "d"]),
+    conditionsFor: {
+        "a": new Set([]),
+        "b": new Set(["a"]),
+        "c": new Set(["b"]),
+        "d": new Set(["c"]),
+    },
+    responseTo: {
+        "a": new Set(["b"]),
+        "b": new Set(["c"]),
+        "c": new Set(["d", "I_Od_I"]),
+        "d": new Set(["I_Pd_I"]),
+    },
+    excludesTo: {
+        "a": new Set(),
+        "b": new Set(),
+        "c": new Set(["c"]),
+        "d": new Set(["d"]),
+    },
+    includesTo: {
+        "a": new Set(),
+        "b": new Set(),
+        "c": new Set(""),
+        "d": new Set(),
+    },
+    milestonesFor: {
+        "a": new Set(),
+        "b": new Set(),
+        "c": new Set(),
+        "d": new Set(),
+    },
+    eventInterfaces: new Set([]),
+    eventToInterface: {},
+    interfaceMap: {},
+    interfaceToEvent:{},
+    marking: {
+        included: new Set(["a", "b", "c", "d"]),
+        executed: new Set(),
+        pending: new Set(),
+    },
+    spawns: {
+        "a": {
+            events: new Set(["Oa", "Ob", "Oc", "Od"]),
+            eventInterfaces: new Set(["I_Oa_I", "I_Ob_I", "I_Oc_I", "I_Od_I"]),
+            interfaceToEvent: {
+                "I_Oa_I": "Oa",
+                "I_Ob_I": "Ob",
+                "I_Oc_I": "Oc",
+                "I_Od_I": "Od",
+            },
+            eventToInterface: {
+                "Oa": "I_Oa_I",
+                "Ob": "I_Ob_I",
+                "Oc": "I_Oc_I",
+                "Od": "I_Od_I",
+            },
+            conditionsFor: {
+                "Oa": new Set([]),
+                "Ob": new Set(["Oa"]),
+                "Oc": new Set([]),
+                "Od": new Set(["Ob"]),
+                "I_Oa_I": new Set([]),
+                "I_Ob_I": new Set([]),
+                "I_Oc_I": new Set([]),
+                "I_Od_I": new Set([]),
+            },
+            responseTo: {
+                "Oa": new Set([]),
+                "Ob": new Set([]),
+                "Oc": new Set([]),
+                "Od": new Set([]),
+                "I_Oa_I": new Set([]),
+                "I_Ob_I": new Set([]),
+                "I_Oc_I": new Set([]),
+                "I_Od_I": new Set([]),
+            },
+            excludesTo: {
+                "Oa": new Set(["Oc"]),
+                "Ob": new Set(["Ob"]),
+                "Oc": new Set(["Oa"]),
+                "Od": new Set([]),
+                "I_Oa_I": new Set([]),
+                "I_Ob_I": new Set([]),
+                "I_Oc_I": new Set([]),
+                "I_Od_I": new Set([]),
+            },
+            includesTo: {
+                "Oa": new Set([]),
+                "Ob": new Set([]),
+                "Oc": new Set([]),
+                "Od": new Set([]),
+                "I_Oa_I": new Set([]),
+                "I_Ob_I": new Set([]),
+                "I_Oc_I": new Set([]),
+                "I_Od_I": new Set([]),
+            },
+            milestonesFor: {
+                "Oa": new Set([]),
+                "Ob": new Set([]),
+                "Oc": new Set([]),
+                "Od": new Set([]),
+                "I_Oa_I": new Set([]),
+                "I_Ob_I": new Set([]),
+                "I_Oc_I": new Set([]),
+                "I_Od_I": new Set([]),
+            },
+            spawns: { },
+            marking: {
+                executed: new Set([]),
+                included: new Set(["Oa", "Ob", "Oc", "Od"]),
+                pending: new Set([])
+            }
+        },
+        "b": {
+            events: new Set(["Pa", "Pb", "Pc", "Pd"]),
+            eventInterfaces: new Set(["I_Pa_I", "I_Pb_I", "I_Pc_I", "I_Pd_I"]),
+            interfaceToEvent: {
+                "I_Pa_I": "Pa",
+                "I_Pb_I": "Pb",
+                "I_Pc_I": "Pc",
+                "I_Pd_I": "Pd",
+            },
+            eventToInterface: {
+                "Pa": "I_Pa_I",
+                "Pb": "I_Pb_I",
+                "Pc": "I_Pc_I",
+                "Pd": "I_Pd_I",
+            },
+            conditionsFor: {
+                "Pa": new Set([]),
+                "Pb": new Set([]),
+                "Pc": new Set([]),
+                "Pd": new Set(["Pb"]),
+                "I_Pa_I": new Set([]),
+                "I_Pb_I": new Set(["I_Ob_I"]),
+                "I_Pc_I": new Set([]),
+                "I_Pd_I": new Set([]),
+            },
+            responseTo: {
+                "Pa": new Set([]),
+                "Pb": new Set([]),
+                "Pc": new Set(["Pa"]),
+                "Pd": new Set([]),
+                "I_Pa_I": new Set([]),
+                "I_Pb_I": new Set([]),
+                "I_Pc_I": new Set([]),
+                "I_Pd_I": new Set(["I_Od_I"]),
+            },
+            excludesTo: {
+                "Pa": new Set([]),
+                "Pb": new Set([]),
+                "Pc": new Set([]),
+                "Pd": new Set([]),
+                "I_Pa_I": new Set(["I_Pa_I"]),
+                "I_Pb_I": new Set([]),
+                "I_Pc_I": new Set([]),
+                "I_Pd_I": new Set([]),
+            },
+            includesTo: {
+                "Pa": new Set([]),
+                "Pb": new Set([]),
+                "Pc": new Set([]),
+                "Pd": new Set([]),
+                "I_Pa_I": new Set([]),
+                "I_Pb_I": new Set([]),
+                "I_Pc_I": new Set([]),
+                "I_Pd_I": new Set([]),
+            },
+            milestonesFor: {
+                "Pa": new Set([]),
+                "Pb": new Set([]),
+                "Pc": new Set([]),
+                "Pd": new Set([]),
+                "I_Pa_I": new Set([]),
+                "I_Pb_I": new Set([]),
+                "I_Pc_I": new Set([]),
+                "I_Pd_I": new Set([]),
+            },
+            spawns: { },
+            marking: {
+                executed: new Set(),
+                included: new Set(["Pa", "Pb", "Pc", "Pd"]),
+                pending: new Set()
+            }
+        }
+    }
+}
+
+export default evaluationGraph;

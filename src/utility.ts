@@ -1,9 +1,37 @@
 import util from "util";
 import now from "performance-now";
-import { DCRGraph, EventMap, HiDCRGraph, LogAbstraction, Marking, Event } from "../types";
+import { DCRGraph, EventMap, HiDCRGraph, LogAbstraction, Marking, Event, OCDCRGraph } from "../types";
 
 export const strFull = (obj: any) => util.inspect(obj, { showHidden: false, depth: null, colors: true })
 export const printFull = (...obj: any) => console.log(strFull(obj));
+
+export const copyOCDCRGraph = (model: OCDCRGraph): OCDCRGraph => {
+    return {
+        conditionsFor: copyEventMap(model.conditionsFor),
+        responseTo: copyEventMap(model.responseTo),
+        excludesTo: copyEventMap(model.excludesTo),
+        includesTo: copyEventMap(model.includesTo),
+        milestonesFor: copyEventMap(model.milestonesFor),
+        marking: copyMarking(model.marking),
+        spawns: model.spawns,
+        events: copySet(model.events),
+        eventInterfaces: copySet(model.eventInterfaces),
+        eventToInterface: { ...model.eventToInterface },
+        interfaceMap: copyEventMap(model.interfaceMap),
+        interfaceToEvent: { ...model.interfaceToEvent }
+    }
+}
+
+export const getRandomInt = (min: number, max: number): number => {
+    const minCeiled = Math.ceil(min);
+    const maxFloored = Math.floor(max);
+    return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
+}
+
+export const getRandomItem = <T>(set: Set<T>) => {
+    let items = Array.from(set);
+    return items[Math.floor(Math.random() * items.length)];
+}
 
 // Time in milliseconds
 export const timer = () => {

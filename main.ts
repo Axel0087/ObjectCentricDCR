@@ -2,7 +2,7 @@ import init from "./init";
 import { writeSerializedGraph } from "./src/fsInteraction";
 import loadDB, { generateOCLog, getEventId, isPartOfSubprocess } from "./src/loadDB";
 import { OCReplay, addOptimization } from "./src/objectCentric";
-import { OCDCRSize, avg, copyEventMap, flipEventMap, timer } from "./src/utility";
+import { OCDCRSize, avg, copyEventMap, flipEventMap, getRandomInt, getRandomItem, timer } from "./src/utility";
 import { Activity, ModelEntities, ModelRelations, OCEventLog, OCTrace } from "./types";
 
 import createEventKnowledgeGraph from "./src/ekg";
@@ -78,16 +78,7 @@ const model_relations: ModelRelations = [
 const csvPath = "./BPI_Challenge_2017.csv";
 
 
-const getRandomInt = (min: number, max: number): number => {
-    const minCeiled = Math.ceil(min);
-    const maxFloored = Math.floor(max);
-    return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
-}
 
-const getRandomItem = <T>(set: Set<T>) => {
-    let items = Array.from(set);
-    return items[Math.floor(Math.random() * items.length)];
-}
 
 const noisify = (trace: OCTrace<{ id: string }>, noisePercentage: number, activities: Set<Activity>, subProcessActivities: Set<Activity>): OCTrace<{ id: string }> => {
     const retTrace: OCTrace<{ id: string }> = [];

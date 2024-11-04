@@ -4,7 +4,7 @@ import { copySet, safeAdd, safeUnion, } from "./utility";
 import lodash from "lodash";
 
 export const getSpawnedEvent = (event: Event, spawnId: string) => {
-    return event + spawnId;
+    return event + "_" + spawnId;
 }
 
 // Mutates model with the spawned instance
@@ -105,7 +105,7 @@ export const ocEventToString = (event: OCEvent<{ id: string }>, model_entities: 
     if (isInitializer(event, model_entities)) {
         return event.activity;
     } else {
-        return event.activity + event.attr.id;
+        return getSpawnedEvent(event.activity, event.attr.id);
     }
 }
 
