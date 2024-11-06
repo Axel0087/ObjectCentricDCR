@@ -18,6 +18,7 @@
   },
   "scripts": {
     "start": "tsc && node --max-old-space-size=16384 ./build/main.js",
-    "evaluate": "tsc && node --max-old-space-size=16384 ./build/evaluation/evaluate.js"
+    "evaluate": "tsc && node --max-old-space-size=16384 ./build/evaluation/evaluate.js",
+    "simulate": "tsc && node --max-old-space-size=16384 ./build/evaluation/simulate.js"
   }
 }

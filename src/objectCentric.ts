@@ -45,7 +45,7 @@ const expandInterfaces = (set: Set<Event>, model: OCDCRGraph): Set<Event> =>
     new Set([...set].flatMap(e => e in model.interfaceMap ? [...model.interfaceMap[e]] : e));
 
 const includeInterfaceRelations = (event: Event, rel: EventMap, graph: OCDCRGraph): Set<Event> => {
-    const interfaceRels = graph.eventToInterface[event] ? rel[graph.eventToInterface[event]] : new Set<Event>();
+    const interfaceRels = graph.eventToInterface[event] ? rel[graph.eventToInterface[event]] : new Set<Event>();    
     return expandInterfaces(rel[event].union(interfaceRels), graph);
 }
 
@@ -102,7 +102,7 @@ export const isInitializer = (event: OCEvent<{ id: string }>, model_entities: Mo
 }
 
 export const ocEventToString = (event: OCEvent<{ id: string }>, model_entities: ModelEntities): string => {
-    if (isInitializer(event, model_entities)) {
+    if (isInitializer(event, model_entities) || event.attr.id === "") {
         return event.activity;
     } else {
         return getSpawnedEvent(event.activity, event.attr.id);

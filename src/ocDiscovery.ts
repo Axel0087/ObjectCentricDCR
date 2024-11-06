@@ -728,6 +728,8 @@ export const discover = (graph: EventKnowledgeGraph, subprocess_entities: Array<
 
     const { conditions, responses } = findConditionsResponses(interFaceOCLog, model_entities);
 
+    console.log(conditions)
+
     addInterFaceConstraints(conditions, "conditionsFor");
     addInterFaceConstraints(responses, "responseTo");
 

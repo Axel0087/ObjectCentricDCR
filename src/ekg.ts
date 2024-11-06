@@ -19,10 +19,12 @@ export default async (db: Datastore<any>, include_entities: Array<string>, model
     const correlations: Correlations = {};
     const activities: Set<Activity> = new Set();;
     for (const row of (await dbFind(db, { EventOrigin: { $in: include_entities } }))) {
-        const activityName = row.Activity + ":" + row.lifecycle;
+        const activityName = row.lifecycle !== "" ? row.Activity + ":" + row.lifecycle : row.Activity;
         let spawnedId = "";
         for (const entity in model_entities) {
-            if (row.Activity + ":" + row.lifecycle === model_entities[entity].subprocessInitializer) spawnedId = row[model_entities[entity].idField];
+            if (activityName === model_entities[entity].subprocessInitializer) {
+                spawnedId = row[model_entities[entity].idField];
+            }
         }
         eventNodes[row.EventID] = { eventId: row.EventID, activityName: activityName, timestamp: new Date(row.timestamp), spawnedId };
 
