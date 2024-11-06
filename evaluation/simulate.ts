@@ -51,7 +51,7 @@ let caseId = 0;
 
 let timestamp = 0;
 const getTimeStamp = () => {
-    return timestamp++;
+    return (new Date(timestamp += 1000));
 }
 let eventId = 0;
 const getEventId = () => {
@@ -61,11 +61,12 @@ const getEventId = () => {
 let goodTraces = 0;
 let csv = "EventID,timestamp,Case,Activity,lifecycle,O,P,EventOrigin\n";
 
-const activityToEntityType: {[activity: string]: string} = {
+const activityToEntityType: { [activity: string]: string } = {
     "a": "Case",
     "b": "Case",
     "c": "Case",
     "d": "Case",
+    "e": "Case",
     "Oa": "O",
     "Ob": "O",
     "Oc": "O",
@@ -91,7 +92,7 @@ while (goodTraces < noTraces) {
             const event = getRandomItem(enabled);
             const parts = event.split("_");
             const entityId = getSpawnId(parts);
-            const ocEvent: OCEvent<{id: string}> = { activity: parts[0], attr: { id: entityId } }
+            const ocEvent: OCEvent<{ id: string }> = { activity: parts[0], attr: { id: entityId } }
 
             engine.execute(ocEvent, graph);
 

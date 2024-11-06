@@ -97,6 +97,7 @@ export const logsForDerivedEntityTypes = (ekg: EventKnowledgeGraph, derivedEntit
 
     for (const entityId in ekg.derivedDFs) {
         const log = retval[getEntityType(entityId)];
+        //if (entityId === "Case_P_1_P-3") console.log(ekg.derivedDFs[entityId]);
         const trace = ekg.derivedDFs[entityId].map(eventNode => eventNode.activityName);
         log.traces[entityId] = trace;
         for (const activity of trace) {
@@ -121,7 +122,6 @@ export const aggregateCorrelations = (ekg: EventKnowledgeGraph): { [activity: Ac
     for (const eventId in ekg.correlations) {
         for (const entityType in ekg.correlations[eventId]) {
             if (ekg.correlations[eventId][entityType].size !== 0) {
-                //console.log(getActivity(eventId));
                 aggCorr[getActivity(eventId)].add(entityType);
             }
         }
@@ -158,10 +158,11 @@ export const abstractLog = (log: EventLog): LogAbstraction => {
         logAbstraction.successor[event] = new Set<Event>();
     }
 
-    const parseTrace = (trace: Trace) => {
+    const parseTrace = (trace: Trace, traceId: string) => {
         const localAtLeastOnce = new Set<Event>();
         const localSeenOnlyBefore: EventMap = {};
         let lastEvent: string = "";
+
         for (const event of trace) {
             // All events seen before this one must be predecessors
             logAbstraction.predecessor[event].union(localAtLeastOnce);
@@ -211,7 +212,7 @@ export const abstractLog = (log: EventLog): LogAbstraction => {
 
     for (const traceId in log.traces) {
         const trace = log.traces[traceId];
-        parseTrace(trace);
+        parseTrace(trace, traceId);
     }
 
     // Compute successor set based on duality with predecessor set
@@ -229,7 +230,6 @@ export const mineOCDCR = (
     ekg: EventKnowledgeGraph,
     model_entities: ModelEntities,
     findAdditionalConditions: boolean = true,
-    //filter: (graph: DCRObject) => DCRObject = (graph: DCRObject) => graph
 ): OCDCRGraph => {
     const aggCorr = aggregateCorrelations(ekg);
 
@@ -319,11 +319,13 @@ export const mineOCDCR = (
         }
     }
 
-
     // Mine conditions from logAbstraction
     for (const e in logAbstraction.precedenceFor) {
         for (const j of logAbstraction.precedenceFor[e]) {
-            getSubProcessGraph(graph, e, j).conditionsFor[e].add(j);
+            if (e === "Ob") console.log(e, j, getSubProcess(e, j), model_entities[getSubProcess(e, j)]);
+            if (getSubProcess(e, j) === "" || model_entities[getSubProcess(e, j)].subprocessInitializer !== j) {
+                getSubProcessGraph(graph, e, j).conditionsFor[e].add(j);
+            }
         }
     }
 
@@ -543,7 +545,7 @@ export const makeOCLogFromClosure = (closures: Array<Set<string>>, ekg: EventKno
                 activity: event.activityName,
                 attr: {
                     id: isSubProcess ? ekg.entityNodes[entity].rawId : initializers.has(event.activityName) ? event.spawnedId : "",
-                    timestamp: event.timestamp
+                    timestamp: event.timestamp,
                 }
             })));
         }
@@ -590,12 +592,18 @@ export const getNonCoexistersAndNotSuccesion = (abs: LogAbstraction, subprocessE
     return retval;
 }
 
-export const findConditionsResponses = (log: OCEventLog<{ id: string }>, model_entities: ModelEntities): {
+export const findConditionsResponses = (log: OCEventLog<{ id: string }>, getSubProcess: (activity: string) => string, model_entities: ModelEntities): {
     conditions: EventMap,
     responses: EventMap,
 } => {
-
     const initializers = new Set(Object.keys(model_entities).map(key => model_entities[key].subprocessInitializer).filter(event => event !== undefined)) as Set<string>;
+
+    const initializerToEntityType = (initializer: string) => {
+        for (const key of Object.keys(model_entities)) {
+            if (model_entities[key].subprocessInitializer === initializer) return key;
+        }
+        return "";
+    }
 
     const subProcessTraces: { [traceId: string]: OCTrace<{ id: string }> } = Object.keys(log.traces).map(traceId => ({ [traceId]: log.traces[traceId].filter(event => event.attr.id !== "") })).reduce((acc, cum) => ({ ...acc, ...cum }))
     const subProcessActivities = new Set(Object.keys(subProcessTraces).flatMap(traceId => subProcessTraces[traceId].map(event => event.activity))).difference(initializers);
@@ -618,7 +626,10 @@ export const findConditionsResponses = (log: OCEventLog<{ id: string }>, model_e
     for (const traceId in log.traces) {
         const trace = log.traces[traceId];
         const subProcessTrace = trace.filter(event => event.attr.id !== "");
-        const spawned = new Set<string>();
+        const spawned: EventMap = {};
+        for (const key of Object.keys(model_entities)) {
+            if (model_entities[key].subprocessInitializer) spawned[key] = new Set();
+        }
         const localAtLeastOnce: EventMap = {};
         const responsesToSatisfy: { [activity: string]: EventMap } = {};
         for (const event of subProcessTrace) {
@@ -630,17 +641,18 @@ export const findConditionsResponses = (log: OCEventLog<{ id: string }>, model_e
         }
 
         for (const event of subProcessTrace) {
-            if (initializers.has(event.activity)) spawned.add(event.attr.id);
+            if (initializers.has(event.activity)) spawned[initializerToEntityType(event.activity)].add(event.attr.id);
             else {
                 localAtLeastOnce[event.activity].add(event.attr.id);
+                const seenAllBefore = new Set(Object.keys(localAtLeastOnce).filter(activity => getSubProcess(activity) !== "" && copySet(localAtLeastOnce[activity]).intersect(spawned[getSubProcess(activity)]).size === spawned[getSubProcess(activity)].size
+                ));
 
-                const seenAllBefore = new Set(Object.keys(localAtLeastOnce).filter(activity => copySet(localAtLeastOnce[activity]).intersect(spawned).size === spawned.size));
                 retval.conditions[event.activity].intersect(seenAllBefore);
 
                 for (const otherEvent of subProcessTrace) {
                     if (initializers.has(otherEvent.activity)) continue;
                     responsesToSatisfy[otherEvent.activity][event.activity].delete(event.attr.id);
-                    responsesToSatisfy[event.activity][otherEvent.activity].union(spawned);
+                    responsesToSatisfy[event.activity][otherEvent.activity].union(spawned[getSubProcess(otherEvent.activity)]);
                 }
             }
         }
@@ -702,6 +714,7 @@ export const discover = (graph: EventKnowledgeGraph, subprocess_entities: Array<
         const interfaceEvent = subProcessGraph.eventToInterface[event];
         for (const s of precedesButNeverSucceeds[event]) {
             if (!interfaceAtMostOnce.has(s)) {
+                if (!getSubProcessGraph(model, s).eventToInterface[s]) console.log("WARNING!");
                 subProcessGraph.excludesTo[interfaceEvent].add(getSubProcessGraph(model, s).eventToInterface[s]);
             }
         }
@@ -712,10 +725,11 @@ export const discover = (graph: EventKnowledgeGraph, subprocess_entities: Array<
             if (getSubProcess(activity) === "") continue;
             const subProcessGraph = getSubProcessGraph(model, activity);
             const interfaceEvent = subProcessGraph.eventToInterface[activity];
-            const setToUnion = new Set([...rel[activity]].map(otherActivity => subProcessGraph.eventToInterface[otherActivity]));
+            const setToUnion = new Set([...rel[activity]].map(otherActivity => getSubProcessGraph(model, otherActivity).eventToInterface[otherActivity]));
             (subProcessGraph[key as keyof DCRObject] as EventMap)[interfaceEvent].union(setToUnion);
         }
     }
+
 
     addInterFaceConstraints(nonCoExisters, "excludesTo");
 
@@ -726,9 +740,8 @@ export const discover = (graph: EventKnowledgeGraph, subprocess_entities: Array<
     console.log("Finding interface conditions / responses...");
     t = timer();
 
-    const { conditions, responses } = findConditionsResponses(interFaceOCLog, model_entities);
+    const { conditions, responses } = findConditionsResponses(interFaceOCLog, getSubProcess, model_entities);
 
-    console.log(conditions)
 
     addInterFaceConstraints(conditions, "conditionsFor");
     addInterFaceConstraints(responses, "responseTo");
