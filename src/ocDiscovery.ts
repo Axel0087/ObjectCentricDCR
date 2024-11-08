@@ -97,7 +97,6 @@ export const logsForDerivedEntityTypes = (ekg: EventKnowledgeGraph, derivedEntit
 
     for (const entityId in ekg.derivedDFs) {
         const log = retval[getEntityType(entityId)];
-        //if (entityId === "Case_P_1_P-3") console.log(ekg.derivedDFs[entityId]);
         const trace = ekg.derivedDFs[entityId].map(eventNode => eventNode.activityName);
         log.traces[entityId] = trace;
         for (const activity of trace) {
@@ -200,6 +199,7 @@ export const abstractLog = (log: EventLog): LogAbstraction => {
         }
         for (const event in localSeenOnlyBefore) {
             // Compute set of events in trace that happened after (event)
+            
             const seenOnlyAfter = new Set(localAtLeastOnce).difference(
                 localSeenOnlyBefore[event],
             );
@@ -322,7 +322,6 @@ export const mineOCDCR = (
     // Mine conditions from logAbstraction
     for (const e in logAbstraction.precedenceFor) {
         for (const j of logAbstraction.precedenceFor[e]) {
-            if (e === "Ob") console.log(e, j, getSubProcess(e, j), model_entities[getSubProcess(e, j)]);
             if (getSubProcess(e, j) === "" || model_entities[getSubProcess(e, j)].subprocessInitializer !== j) {
                 getSubProcessGraph(graph, e, j).conditionsFor[e].add(j);
             }
@@ -406,13 +405,16 @@ export const mineOCDCR = (
                 included.difference(getSubProcessGraph(graph, event).excludesTo[event]);
                 // Execute includes starting from (event)
                 included.union(getSubProcessGraph(graph, event).includesTo[event]);
+                localSeenBefore.add(event);
             }
         }
         // Now the only possibleCondtitions that remain are valid for all traces
         // These are therefore added to the graph
         for (const e in possibleConditions) {
             for (const j of possibleConditions[e]) {
-                getSubProcessGraph(graph, e, j).conditionsFor[e].add(j);
+                if (getSubProcess(e, j) === "" || model_entities[getSubProcess(e, j)].subprocessInitializer !== j) {
+                    getSubProcessGraph(graph, e, j).conditionsFor[e].add(j);
+                }
             }
         }
 

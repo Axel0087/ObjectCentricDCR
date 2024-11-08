@@ -88,7 +88,6 @@ export default async (db: Datastore<any>, include_entities: Array<string>, model
                 entityRels[n1].add(n2);
                 entityRels[n2].add(n1);
 
-                if (entityId === "Case_P_1_P-3") console.log(invCorrelations[n1], invCorrelations[n2]);
                 // All events that are correlated to n1 and/or n2 are correlated to the derived entity
                 // Removing duplicates inline
 

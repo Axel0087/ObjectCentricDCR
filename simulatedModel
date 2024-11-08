@@ -1,0 +1,404 @@
+{
+    "events": [
+        "a",
+        "b",
+        "c",
+        "d"
+    ],
+    "eventInterfaces": [],
+    "eventToInterface": {},
+    "interfaceToEvent": {},
+    "interfaceMap": {},
+    "conditionsFor": {
+        "a": [],
+        "b": [],
+        "c": [
+            "a",
+            "b"
+        ],
+        "d": [
+            "c"
+        ]
+    },
+    "excludesTo": {
+        "a": [],
+        "b": [],
+        "c": [
+            "c",
+            "a",
+            "b"
+        ],
+        "d": [
+            "d"
+        ]
+    },
+    "includesTo": {
+        "a": [],
+        "b": [],
+        "c": [],
+        "d": []
+    },
+    "milestonesFor": {
+        "a": [],
+        "b": [],
+        "c": [],
+        "d": []
+    },
+    "responseTo": {
+        "a": [
+            "c"
+        ],
+        "b": [
+            "c"
+        ],
+        "c": [
+            "d"
+        ],
+        "d": []
+    },
+    "marking": {
+        "executed": [],
+        "pending": [],
+        "included": [
+            "a",
+            "b",
+            "c",
+            "d"
+        ]
+    },
+    "spawns": {
+        "a": {
+            "events": [
+                "Oc",
+                "Ob",
+                "Od",
+                "Oa"
+            ],
+            "eventInterfaces": [
+                "I_Oc_I",
+                "I_Ob_I",
+                "I_Od_I",
+                "I_Oa_I"
+            ],
+            "eventToInterface": {
+                "Oc": "I_Oc_I",
+                "Ob": "I_Ob_I",
+                "Od": "I_Od_I",
+                "Oa": "I_Oa_I"
+            },
+            "interfaceToEvent": {
+                "I_Oc_I": "Oc",
+                "I_Ob_I": "Ob",
+                "I_Od_I": "Od",
+                "I_Oa_I": "Oa"
+            },
+            "conditionsFor": {
+                "a": [],
+                "b": [],
+                "Oc": [],
+                "I_Oc_I": [],
+                "Ob": [
+                    "Oc",
+                    "Oa"
+                ],
+                "I_Ob_I": [],
+                "c": [],
+                "Od": [
+                    "Ob"
+                ],
+                "I_Od_I": [],
+                "d": [],
+                "Oa": [],
+                "I_Oa_I": [],
+                "Pa": [],
+                "I_Pa_I": [],
+                "Pc": [],
+                "I_Pc_I": [],
+                "Pb": [],
+                "I_Pb_I": [],
+                "Pd": [],
+                "I_Pd_I": []
+            },
+            "excludesTo": {
+                "a": [],
+                "b": [],
+                "Oc": [
+                    "Oa"
+                ],
+                "I_Oc_I": [],
+                "Ob": [],
+                "I_Ob_I": [],
+                "c": [],
+                "Od": [],
+                "I_Od_I": [],
+                "d": [],
+                "Oa": [
+                    "Oc"
+                ],
+                "I_Oa_I": [],
+                "Pa": [],
+                "I_Pa_I": [],
+                "Pc": [],
+                "I_Pc_I": [],
+                "Pb": [],
+                "I_Pb_I": [],
+                "Pd": [],
+                "I_Pd_I": []
+            },
+            "includesTo": {
+                "a": [],
+                "b": [],
+                "Oc": [],
+                "I_Oc_I": [],
+                "Ob": [],
+                "I_Ob_I": [],
+                "c": [],
+                "Od": [],
+                "I_Od_I": [],
+                "d": [],
+                "Oa": [],
+                "I_Oa_I": [],
+                "Pa": [],
+                "I_Pa_I": [],
+                "Pc": [],
+                "I_Pc_I": [],
+                "Pb": [],
+                "I_Pb_I": [],
+                "Pd": [],
+                "I_Pd_I": []
+            },
+            "milestonesFor": {
+                "a": [],
+                "b": [],
+                "Oc": [],
+                "I_Oc_I": [],
+                "Ob": [],
+                "I_Ob_I": [],
+                "c": [],
+                "Od": [],
+                "I_Od_I": [],
+                "d": [],
+                "Oa": [],
+                "I_Oa_I": [],
+                "Pa": [],
+                "I_Pa_I": [],
+                "Pc": [],
+                "I_Pc_I": [],
+                "Pb": [],
+                "I_Pb_I": [],
+                "Pd": [],
+                "I_Pd_I": []
+            },
+            "responseTo": {
+                "a": [
+                    "Od"
+                ],
+                "b": [
+                    "Od"
+                ],
+                "Oc": [],
+                "I_Oc_I": [],
+                "Ob": [],
+                "I_Ob_I": [],
+                "c": [
+                    "Od"
+                ],
+                "Od": [],
+                "I_Od_I": [
+                    "I_Pd_I"
+                ],
+                "d": [],
+                "Oa": [],
+                "I_Oa_I": [],
+                "Pa": [],
+                "I_Pa_I": [],
+                "Pc": [],
+                "I_Pc_I": [],
+                "Pb": [],
+                "I_Pb_I": [],
+                "Pd": [],
+                "I_Pd_I": []
+            },
+            "marking": {
+                "executed": [],
+                "pending": [],
+                "included": [
+                    "Oc",
+                    "Ob",
+                    "Od",
+                    "Oa"
+                ]
+            },
+            "spawns": {}
+        },
+        "b": {
+            "events": [
+                "Pa",
+                "Pc",
+                "Pb",
+                "Pd"
+            ],
+            "eventInterfaces": [
+                "I_Pa_I",
+                "I_Pc_I",
+                "I_Pb_I",
+                "I_Pd_I"
+            ],
+            "eventToInterface": {
+                "Pa": "I_Pa_I",
+                "Pc": "I_Pc_I",
+                "Pb": "I_Pb_I",
+                "Pd": "I_Pd_I"
+            },
+            "interfaceToEvent": {
+                "I_Pa_I": "Pa",
+                "I_Pc_I": "Pc",
+                "I_Pb_I": "Pb",
+                "I_Pd_I": "Pd"
+            },
+            "conditionsFor": {
+                "a": [],
+                "b": [],
+                "Oc": [],
+                "I_Oc_I": [],
+                "Ob": [],
+                "I_Ob_I": [],
+                "c": [],
+                "Od": [],
+                "I_Od_I": [],
+                "d": [],
+                "Oa": [],
+                "I_Oa_I": [],
+                "Pa": [],
+                "I_Pa_I": [],
+                "Pc": [
+                    "a",
+                    "c",
+                    "d"
+                ],
+                "I_Pc_I": [],
+                "Pb": [],
+                "I_Pb_I": [
+                    "I_Ob_I"
+                ],
+                "Pd": [
+                    "Pb"
+                ],
+                "I_Pd_I": []
+            },
+            "excludesTo": {
+                "a": [],
+                "b": [],
+                "Oc": [],
+                "I_Oc_I": [],
+                "Ob": [],
+                "I_Ob_I": [],
+                "c": [],
+                "Od": [],
+                "I_Od_I": [],
+                "d": [],
+                "Oa": [],
+                "I_Oa_I": [],
+                "Pa": [
+                    "Pa",
+                    "b"
+                ],
+                "I_Pa_I": [
+                    "I_Pa_I"
+                ],
+                "Pc": [
+                    "a",
+                    "b"
+                ],
+                "I_Pc_I": [],
+                "Pb": [],
+                "I_Pb_I": [],
+                "Pd": [],
+                "I_Pd_I": []
+            },
+            "includesTo": {
+                "a": [],
+                "b": [],
+                "Oc": [],
+                "I_Oc_I": [],
+                "Ob": [],
+                "I_Ob_I": [],
+                "c": [],
+                "Od": [],
+                "I_Od_I": [],
+                "d": [],
+                "Oa": [],
+                "I_Oa_I": [],
+                "Pa": [],
+                "I_Pa_I": [],
+                "Pc": [],
+                "I_Pc_I": [],
+                "Pb": [],
+                "I_Pb_I": [],
+                "Pd": [],
+                "I_Pd_I": []
+            },
+            "milestonesFor": {
+                "a": [],
+                "b": [],
+                "Oc": [],
+                "I_Oc_I": [],
+                "Ob": [],
+                "I_Ob_I": [],
+                "c": [],
+                "Od": [],
+                "I_Od_I": [],
+                "d": [],
+                "Oa": [],
+                "I_Oa_I": [],
+                "Pa": [],
+                "I_Pa_I": [],
+                "Pc": [],
+                "I_Pc_I": [],
+                "Pb": [],
+                "I_Pb_I": [],
+                "Pd": [],
+                "I_Pd_I": []
+            },
+            "responseTo": {
+                "a": [
+                    "Pd"
+                ],
+                "b": [
+                    "Pd"
+                ],
+                "Oc": [],
+                "I_Oc_I": [],
+                "Ob": [],
+                "I_Ob_I": [],
+                "c": [
+                    "Pd"
+                ],
+                "Od": [],
+                "I_Od_I": [],
+                "d": [],
+                "Oa": [],
+                "I_Oa_I": [],
+                "Pa": [],
+                "I_Pa_I": [],
+                "Pc": [],
+                "I_Pc_I": [],
+                "Pb": [],
+                "I_Pb_I": [],
+                "Pd": [],
+                "I_Pd_I": []
+            },
+            "marking": {
+                "executed": [],
+                "pending": [],
+                "included": [
+                    "Pa",
+                    "Pc",
+                    "Pb",
+                    "Pd"
+                ]
+            },
+            "spawns": {}
+        }
+    }
+}

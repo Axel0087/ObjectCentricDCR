@@ -1,5 +1,5 @@
 import evaluationGraph from "./evaluationGraph";
-import getEngine from "./engine";
+import getEngine, { getEnabled } from "./engine";
 import { ModelEntities, OCEvent } from "../types";
 import { copyOCDCRGraph, getRandomInt, getRandomItem } from "../src/utility";
 import init from "../init";

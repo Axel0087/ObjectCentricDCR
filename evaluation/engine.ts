@@ -15,7 +15,7 @@ const expandInterfaces = (set: Set<Event>, model: OCDCRGraph): Set<Event> => {
     for (const elem of set) {
         if (elem in model.interfaceMap) {
             retSet.union(model.interfaceMap[elem])
-        } else {
+        } else if (model.events.has(elem)){
             retSet.add(elem);
         }
     }
