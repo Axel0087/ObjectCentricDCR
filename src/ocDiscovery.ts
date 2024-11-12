@@ -199,7 +199,7 @@ export const abstractLog = (log: EventLog): LogAbstraction => {
         }
         for (const event in localSeenOnlyBefore) {
             // Compute set of events in trace that happened after (event)
-            
+
             const seenOnlyAfter = new Set(localAtLeastOnce).difference(
                 localSeenOnlyBefore[event],
             );

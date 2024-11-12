@@ -1,6 +1,8 @@
 build
 badAlignTraces
 FullModel
+.ipynb_checkpoints
+align_benchmark.png
 
 BPI_Challenge_2017.csv
 
