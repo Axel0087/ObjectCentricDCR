@@ -1,8 +1,22 @@
 import fs from "fs";
-import { EntityRels, EventKnowledgeGraph, EventNode, isEntityRels } from "./types";
+import { EntityRels, EventKnowledgeGraph, EventNode, isEntityRels, ModelEntities, ModelRelations } from "./types";
 import { safeAdd } from "./src/utility";
 
-const fp = "./sample_logs/ContainerLogistics.json";
+const include_entities = ['orders', 'items', 'packages', 'OI', 'OP', 'IP'];
+const model_entities_derived = ['OI', 'OP', 'IP'];
+const subprocess_entities = ['items', 'packages'];
+
+const model_entities: ModelEntities = {
+
+};
+
+const model_relations: ModelRelations = [
+    { derivedEntityType: 'OI', nt1: 'orders', nt2: 'items' },
+    { derivedEntityType: 'OP', nt1: 'orders', nt2: 'packages' },
+    { derivedEntityType: 'IP', nt1: 'items', nt2: 'packages' }
+];
+
+const fp = "./sample_logs/order-management.json";
 
 const json = JSON.parse(fs.readFileSync(fp).toString());
 
@@ -17,8 +31,6 @@ const ekg: EventKnowledgeGraph = {
     derivedDFs: {},
 }
 
-console.log(Object.keys(json));
-
 for (const objectType of json.objectTypes) {
     ekg.entityTypes.add(objectType.name);
 }
@@ -28,12 +40,17 @@ for (const eventType of json.eventTypes) {
 }
 
 for (const object of json.objects) {
-    if (object.id === "vh30") console.log(object);
+    if (!include_entities.includes(object.type)) continue;
     if (!ekg.entityNodes[object.id]) ekg.entityNodes[object.id] = { entityId: object.id, entityType: object.type, rawId: "" };
+    if (object.id === "o-990035") console.log("hey hey");
     if (!ekg.entityRels[object.id]) ekg.entityRels[object.id] = new Set();
     if (!ekg.directlyFollows[object.id]) ekg.directlyFollows[object.id] = [];
+}
+for (const object of json.objects) {
+    if (!include_entities.includes(object.type)) continue;
     for (const otherObject of object.relationships) {
-        if (!ekg.entityRels[otherObject.objectId]) ekg.entityRels[otherObject.objectId] = new Set();
+        const type = ekg.entityNodes[otherObject.objectId]?.entityType;
+        if (!type || !include_entities.includes(type)) continue;
         ekg.entityRels[otherObject.objectId].add(object.id);
         ekg.entityRels[object.id].add(otherObject.objectId);
     }
@@ -47,12 +64,12 @@ for (const event of json.events) {
         ekg.correlations[event.id][entityType] = new Set();
     }
     for (const related of event.relationships) {
+        const type = ekg.entityNodes[related.objectId]?.entityType;
+        if (!type || !include_entities.includes(type)) continue;
         const entityId = related.objectId;
-        console.log(ekg.entityNodes["vh30"]);
-        console.log(related);
         const entityType = ekg.entityNodes[entityId].entityType;
         ekg.correlations[event.id][entityType].add(entityId);
     }
 }
 
-//console.log(ekg.correlations);
+console.log(ekg.correlations);
