@@ -79,9 +79,6 @@ const model_relations: ModelRelations = [
 
 const csvPath = "./BPI_Challenge_2017.csv";
 
-
-
-
 const noisify = (trace: OCTrace<{ id: string }>, noisePercentage: number, activities: Set<Activity>, subProcessActivities: Set<Activity>): OCTrace<{ id: string }> => {
     const retTrace: OCTrace<{ id: string }> = [];
     const ids = trace.map(event => event.attr.id).filter(id => id !== "");

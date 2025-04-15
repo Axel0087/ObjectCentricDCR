@@ -90,7 +90,6 @@ export default async (db: Datastore<any>, include_entities: Array<string>, model
 
                 // All events that are correlated to n1 and/or n2 are correlated to the derived entity
                 // Removing duplicates inline
-
                 const allEvents = [...new Map([...invCorrelations[n1], ...invCorrelations[n2]].slice().reverse().map(v => [v.eventId, v])).values()].reverse();
                 invCorrelations[entityId] = allEvents;
                 for (const event of allEvents) {

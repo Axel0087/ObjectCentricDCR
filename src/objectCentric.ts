@@ -45,7 +45,7 @@ const expandInterfaces = (set: Set<Event>, model: OCDCRGraph): Set<Event> =>
     new Set([...set].flatMap(e => e in model.interfaceMap ? [...model.interfaceMap[e]] : e));
 
 const includeInterfaceRelations = (event: Event, rel: EventMap, graph: OCDCRGraph): Set<Event> => {
-    const interfaceRels = graph.eventToInterface[event] ? rel[graph.eventToInterface[event]] : new Set<Event>();    
+    const interfaceRels = graph.eventToInterface[event] ? rel[graph.eventToInterface[event]] : new Set<Event>();
     return expandInterfaces(rel[event].union(interfaceRels), graph);
 }
 
@@ -68,7 +68,6 @@ export const addOptimization = (graph: OCDCRGraph, ids: Array<string>): OCDCRGra
         conditions
     }
 }
-
 
 export const isEnabled = (event: Event, graph: OCDCRGraph): boolean => {
     if (!graph.marking.included.has(event)) {
