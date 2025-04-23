@@ -1,13 +1,29 @@
 import fs from "fs";
 import { EntityRels, EventKnowledgeGraph, EventNode, isEntityRels, ModelEntities, ModelRelations } from "./types";
 import { safeAdd } from "./src/utility";
+import { aggregateCorrelations } from "./src/ocDiscovery";
+import { findCardinalities } from "./src/processMining";
 
 const include_entities = ['orders', 'items', 'packages', 'OI', 'OP', 'IP'];
 const model_entities_derived = ['OI', 'OP', 'IP'];
-const subprocess_entities = ['items', 'packages'];
+const subprocess_entities = ['items', 'packages', 'orders'];
 
 const model_entities: ModelEntities = {
-
+    "orders": {
+        dbDoc: {},
+        idField: "",
+        subprocessInitializer: ""   // TODO: Update!
+    },
+    "packages": {
+        dbDoc: {},
+        idField: "",
+        subprocessInitializer: ""   // TODO: Update!
+    },
+    "items": {
+        dbDoc: {},
+        idField: "",
+        subprocessInitializer: ""   // TODO: Update!
+    },
 };
 
 const model_relations: ModelRelations = [
@@ -42,7 +58,6 @@ for (const eventType of json.eventTypes) {
 for (const object of json.objects) {
     if (!include_entities.includes(object.type)) continue;
     if (!ekg.entityNodes[object.id]) ekg.entityNodes[object.id] = { entityId: object.id, entityType: object.type, rawId: "" };
-    if (object.id === "o-990035") console.log("hey hey");
     if (!ekg.entityRels[object.id]) ekg.entityRels[object.id] = new Set();
     if (!ekg.directlyFollows[object.id]) ekg.directlyFollows[object.id] = [];
 }
@@ -72,4 +87,8 @@ for (const event of json.events) {
     }
 }
 
-console.log(ekg.correlations);
+const aggCorr = aggregateCorrelations(ekg);
+
+const cards = findCardinalities(ekg, include_entities);
+
+console.log(cards);
