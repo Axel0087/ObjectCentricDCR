@@ -543,13 +543,15 @@ export const makeOCLogFromClosure = (closures: Array<Set<string>>, ekg: EventKno
         let trace: OCTrace<{ id: string, timestamp: Date }> = [];
         for (const entity of closure) {
             const isSubProcess = subprocessEntities.includes(ekg.entityNodes[entity].entityType);
-            trace = trace.concat(ekg.directlyFollows[entity].map(event => ({
-                activity: event.activityName,
-                attr: {
-                    id: isSubProcess ? ekg.entityNodes[entity].rawId : initializers.has(event.activityName) ? event.spawnedId : "",
-                    timestamp: event.timestamp,
-                }
-            })));
+            trace = trace.concat(ekg.directlyFollows[entity].map(event => {
+                return ({
+                    activity: event.activityName,
+                    attr: {
+                        id: initializers.has(event.activityName) ? event.spawnedId : isSubProcess ? ekg.entityNodes[entity].rawId : "",
+                        timestamp: event.timestamp,
+                    }
+                })
+            }));
         }
         log.activities.union(new Set(trace.map(e => e.activity)))
         log.traces[id++] = trace.sort((a, b) => a.attr.timestamp.getTime() - b.attr.timestamp.getTime());
@@ -643,7 +645,9 @@ export const findConditionsResponses = (log: OCEventLog<{ id: string }>, getSubP
         }
 
         for (const event of subProcessTrace) {
-            if (initializers.has(event.activity)) spawned[initializerToEntityType(event.activity)].add(event.attr.id);
+            if (initializers.has(event.activity)) {
+                spawned[initializerToEntityType(event.activity)].add(event.attr.id);
+            }
             else {
                 localAtLeastOnce[event.activity].add(event.attr.id);
                 const seenAllBefore = new Set(Object.keys(localAtLeastOnce).filter(activity => getSubProcess(activity) !== "" && copySet(localAtLeastOnce[activity]).intersect(spawned[getSubProcess(activity)]).size === spawned[getSubProcess(activity)].size

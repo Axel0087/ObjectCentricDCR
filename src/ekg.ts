@@ -7,7 +7,7 @@ const genEntityId = (rawId: string, entityType: string) => {
     return entityType + "_" + rawId;
 }
 
-const isDerived = (entityId: string, entityNodes: EntityNodes, model_entities: ModelEntities): boolean => {
+export const isDerived = (entityId: string, entityNodes: EntityNodes, model_entities: ModelEntities): boolean => {
     return !Object.keys(model_entities).includes(entityNodes[entityId].entityType);
 }
 
