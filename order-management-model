@@ -1,135 +1,387 @@
 {
     "events": [
-        "create item",
         "place order",
-        "confirm order",
-        "pay order",
-        "payment reminder",
-        "create package",
-        "send package",
-        "package delivered",
-        "failed delivery"
+        "create package"
     ],
     "eventInterfaces": [],
     "eventToInterface": {},
     "interfaceToEvent": {},
     "interfaceMap": {},
     "conditionsFor": {
-        "create item": [],
-        "place order": [
-            "create item"
-        ],
-        "confirm order": [
+        "place order": [],
+        "create package": [
             "place order"
-        ],
-        "pay order": [
-            "confirm order",
-            "create item"
-        ],
-        "payment reminder": [
-            "confirm order",
-            "create item"
-        ],
-        "create package": [],
-        "send package": [
-            "create package"
-        ],
-        "package delivered": [
-            "send package"
-        ],
-        "failed delivery": [
-            "send package"
         ]
     },
     "excludesTo": {
-        "create item": [],
-        "place order": [
-            "place order",
-            "create item"
-        ],
-        "confirm order": [
-            "confirm order"
-        ],
-        "pay order": [
-            "pay order",
-            "payment reminder"
-        ],
-        "payment reminder": [],
-        "create package": [
-            "create package"
-        ],
-        "send package": [
-            "send package"
-        ],
-        "package delivered": [
-            "package delivered",
-            "failed delivery"
-        ],
-        "failed delivery": []
+        "place order": [],
+        "create package": []
     },
     "includesTo": {
-        "create item": [],
         "place order": [],
-        "confirm order": [],
-        "pay order": [],
-        "payment reminder": [],
-        "create package": [],
-        "send package": [],
-        "package delivered": [],
-        "failed delivery": []
+        "create package": []
     },
     "milestonesFor": {
-        "create item": [],
         "place order": [],
-        "confirm order": [],
-        "pay order": [],
-        "payment reminder": [],
-        "create package": [],
-        "send package": [],
-        "package delivered": [],
-        "failed delivery": []
+        "create package": []
     },
     "responseTo": {
-        "create item": [
-            "place order"
-        ],
         "place order": [
-            "confirm order"
+            "create package"
         ],
-        "confirm order": [
-            "pay order"
-        ],
-        "pay order": [],
-        "payment reminder": [
-            "pay order"
-        ],
-        "create package": [
-            "send package"
-        ],
-        "send package": [
-            "package delivered"
-        ],
-        "package delivered": [],
-        "failed delivery": [
-            "package delivered"
-        ]
+        "create package": []
     },
     "marking": {
         "executed": [],
         "pending": [],
         "included": [
-            "create item",
             "place order",
-            "confirm order",
-            "pay order",
-            "payment reminder",
-            "create package",
-            "send package",
-            "package delivered",
-            "failed delivery"
+            "create package"
         ]
     },
     "spawns": {
+        "place order": {
+            "events": [
+                "create item",
+                "confirm order",
+                "pay order",
+                "payment reminder"
+            ],
+            "eventInterfaces": [
+                "I_create item_I",
+                "I_confirm order_I",
+                "I_pay order_I",
+                "I_payment reminder_I"
+            ],
+            "eventToInterface": {
+                "create item": "I_create item_I",
+                "confirm order": "I_confirm order_I",
+                "pay order": "I_pay order_I",
+                "payment reminder": "I_payment reminder_I"
+            },
+            "interfaceToEvent": {
+                "I_create item_I": "create item",
+                "I_confirm order_I": "confirm order",
+                "I_pay order_I": "pay order",
+                "I_payment reminder_I": "payment reminder"
+            },
+            "conditionsFor": {
+                "pick item": [],
+                "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
+                "confirm order": [
+                    "create item"
+                ],
+                "I_confirm order_I": [],
+                "pay order": [
+                    "confirm order"
+                ],
+                "I_pay order_I": [],
+                "item out of stock": [],
+                "I_item out of stock_I": [],
+                "reorder item": [],
+                "I_reorder item_I": [],
+                "payment reminder": [
+                    "confirm order"
+                ],
+                "I_payment reminder_I": [],
+                "send package": [],
+                "I_send package_I": [],
+                "package delivered": [],
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
+            },
+            "excludesTo": {
+                "pick item": [],
+                "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
+                "confirm order": [
+                    "confirm order",
+                    "create item"
+                ],
+                "I_confirm order_I": [],
+                "pay order": [
+                    "pay order",
+                    "payment reminder"
+                ],
+                "I_pay order_I": [],
+                "item out of stock": [],
+                "I_item out of stock_I": [],
+                "reorder item": [],
+                "I_reorder item_I": [],
+                "payment reminder": [],
+                "I_payment reminder_I": [],
+                "send package": [],
+                "I_send package_I": [],
+                "package delivered": [],
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
+            },
+            "includesTo": {
+                "pick item": [],
+                "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
+                "confirm order": [],
+                "I_confirm order_I": [],
+                "pay order": [],
+                "I_pay order_I": [],
+                "item out of stock": [],
+                "I_item out of stock_I": [],
+                "reorder item": [],
+                "I_reorder item_I": [],
+                "payment reminder": [],
+                "I_payment reminder_I": [],
+                "send package": [],
+                "I_send package_I": [],
+                "package delivered": [],
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
+            },
+            "milestonesFor": {
+                "pick item": [],
+                "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
+                "confirm order": [],
+                "I_confirm order_I": [],
+                "pay order": [],
+                "I_pay order_I": [],
+                "item out of stock": [],
+                "I_item out of stock_I": [],
+                "reorder item": [],
+                "I_reorder item_I": [],
+                "payment reminder": [],
+                "I_payment reminder_I": [],
+                "send package": [],
+                "I_send package_I": [],
+                "package delivered": [],
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
+            },
+            "responseTo": {
+                "pick item": [],
+                "I_pick item_I": [],
+                "create item": [
+                    "confirm order"
+                ],
+                "I_create item_I": [],
+                "confirm order": [
+                    "pay order"
+                ],
+                "I_confirm order_I": [],
+                "pay order": [],
+                "I_pay order_I": [],
+                "item out of stock": [],
+                "I_item out of stock_I": [],
+                "reorder item": [],
+                "I_reorder item_I": [],
+                "payment reminder": [
+                    "pay order"
+                ],
+                "I_payment reminder_I": [],
+                "send package": [],
+                "I_send package_I": [],
+                "package delivered": [],
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
+            },
+            "marking": {
+                "executed": [],
+                "pending": [],
+                "included": [
+                    "create item",
+                    "confirm order",
+                    "pay order",
+                    "payment reminder"
+                ]
+            },
+            "spawns": {}
+        },
+        "create package": {
+            "events": [
+                "send package",
+                "package delivered",
+                "failed delivery"
+            ],
+            "eventInterfaces": [
+                "I_send package_I",
+                "I_package delivered_I",
+                "I_failed delivery_I"
+            ],
+            "eventToInterface": {
+                "send package": "I_send package_I",
+                "package delivered": "I_package delivered_I",
+                "failed delivery": "I_failed delivery_I"
+            },
+            "interfaceToEvent": {
+                "I_send package_I": "send package",
+                "I_package delivered_I": "package delivered",
+                "I_failed delivery_I": "failed delivery"
+            },
+            "conditionsFor": {
+                "pick item": [],
+                "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
+                "confirm order": [],
+                "I_confirm order_I": [],
+                "pay order": [],
+                "I_pay order_I": [],
+                "item out of stock": [],
+                "I_item out of stock_I": [],
+                "reorder item": [],
+                "I_reorder item_I": [],
+                "payment reminder": [],
+                "I_payment reminder_I": [],
+                "send package": [
+                    "pick item"
+                ],
+                "I_send package_I": [],
+                "package delivered": [
+                    "send package"
+                ],
+                "I_package delivered_I": [],
+                "failed delivery": [
+                    "send package"
+                ],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
+            },
+            "excludesTo": {
+                "pick item": [],
+                "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
+                "confirm order": [],
+                "I_confirm order_I": [],
+                "pay order": [],
+                "I_pay order_I": [],
+                "item out of stock": [],
+                "I_item out of stock_I": [],
+                "reorder item": [],
+                "I_reorder item_I": [],
+                "payment reminder": [],
+                "I_payment reminder_I": [],
+                "send package": [
+                    "send package"
+                ],
+                "I_send package_I": [],
+                "package delivered": [
+                    "package delivered",
+                    "failed delivery"
+                ],
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
+            },
+            "includesTo": {
+                "pick item": [],
+                "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
+                "confirm order": [],
+                "I_confirm order_I": [],
+                "pay order": [],
+                "I_pay order_I": [],
+                "item out of stock": [],
+                "I_item out of stock_I": [],
+                "reorder item": [],
+                "I_reorder item_I": [],
+                "payment reminder": [],
+                "I_payment reminder_I": [],
+                "send package": [],
+                "I_send package_I": [],
+                "package delivered": [],
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
+            },
+            "milestonesFor": {
+                "pick item": [],
+                "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
+                "confirm order": [],
+                "I_confirm order_I": [],
+                "pay order": [],
+                "I_pay order_I": [],
+                "item out of stock": [],
+                "I_item out of stock_I": [],
+                "reorder item": [],
+                "I_reorder item_I": [],
+                "payment reminder": [],
+                "I_payment reminder_I": [],
+                "send package": [],
+                "I_send package_I": [],
+                "package delivered": [],
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
+            },
+            "responseTo": {
+                "pick item": [],
+                "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
+                "confirm order": [],
+                "I_confirm order_I": [],
+                "pay order": [],
+                "I_pay order_I": [],
+                "item out of stock": [],
+                "I_item out of stock_I": [],
+                "reorder item": [],
+                "I_reorder item_I": [],
+                "payment reminder": [],
+                "I_payment reminder_I": [],
+                "send package": [
+                    "package delivered"
+                ],
+                "I_send package_I": [],
+                "package delivered": [],
+                "I_package delivered_I": [],
+                "failed delivery": [
+                    "package delivered"
+                ],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
+            },
+            "marking": {
+                "executed": [],
+                "pending": [],
+                "included": [
+                    "send package",
+                    "package delivered",
+                    "failed delivery"
+                ]
+            },
+            "spawns": {}
+        },
         "create item": {
             "events": [
                 "pick item",
@@ -152,49 +404,44 @@
                 "I_reorder item_I": "reorder item"
             },
             "conditionsFor": {
-                "create item": [],
-                "place order": [],
-                "pick item": [
-                    "place order"
-                ],
+                "pick item": [],
                 "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
                 "confirm order": [],
+                "I_confirm order_I": [],
                 "pay order": [],
-                "item out of stock": [
-                    "place order"
-                ],
+                "I_pay order_I": [],
+                "item out of stock": [],
                 "I_item out of stock_I": [],
                 "reorder item": [
                     "item out of stock"
                 ],
                 "I_reorder item_I": [],
                 "payment reminder": [],
-                "create package": [
-                    "pick item"
-                ],
-                "send package": [
-                    "pick item"
-                ],
-                "package delivered": [
-                    "pick item"
-                ],
-                "failed delivery": [
-                    "pick item"
-                ]
+                "I_payment reminder_I": [],
+                "send package": [],
+                "I_send package_I": [],
+                "package delivered": [],
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
             },
             "excludesTo": {
-                "create item": [],
-                "place order": [],
                 "pick item": [
-                    "pick item",
-                    "create item"
+                    "pick item"
                 ],
                 "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
                 "confirm order": [],
+                "I_confirm order_I": [],
                 "pay order": [],
+                "I_pay order_I": [],
                 "item out of stock": [
-                    "item out of stock",
-                    "create item"
+                    "item out of stock"
                 ],
                 "I_item out of stock_I": [],
                 "reorder item": [
@@ -202,60 +449,76 @@
                 ],
                 "I_reorder item_I": [],
                 "payment reminder": [],
-                "create package": [],
+                "I_payment reminder_I": [],
                 "send package": [],
+                "I_send package_I": [],
                 "package delivered": [],
-                "failed delivery": []
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
             },
             "includesTo": {
-                "create item": [],
-                "place order": [],
                 "pick item": [],
                 "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
                 "confirm order": [],
+                "I_confirm order_I": [],
                 "pay order": [],
+                "I_pay order_I": [],
                 "item out of stock": [],
                 "I_item out of stock_I": [],
                 "reorder item": [],
                 "I_reorder item_I": [],
                 "payment reminder": [],
-                "create package": [],
+                "I_payment reminder_I": [],
                 "send package": [],
+                "I_send package_I": [],
                 "package delivered": [],
-                "failed delivery": []
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
             },
             "milestonesFor": {
-                "create item": [],
-                "place order": [],
                 "pick item": [],
                 "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
                 "confirm order": [],
+                "I_confirm order_I": [],
                 "pay order": [],
+                "I_pay order_I": [],
                 "item out of stock": [],
                 "I_item out of stock_I": [],
                 "reorder item": [],
                 "I_reorder item_I": [],
                 "payment reminder": [],
-                "create package": [],
+                "I_payment reminder_I": [],
                 "send package": [],
+                "I_send package_I": [],
                 "package delivered": [],
-                "failed delivery": []
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
             },
             "responseTo": {
-                "create item": [
-                    "pick item"
-                ],
-                "place order": [
-                    "pick item"
-                ],
                 "pick item": [
-                    "create package",
                     "send package",
                     "package delivered"
                 ],
                 "I_pick item_I": [],
+                "create item": [],
+                "I_create item_I": [],
                 "confirm order": [],
+                "I_confirm order_I": [],
                 "pay order": [],
+                "I_pay order_I": [],
                 "item out of stock": [
                     "reorder item"
                 ],
@@ -265,10 +528,15 @@
                 ],
                 "I_reorder item_I": [],
                 "payment reminder": [],
-                "create package": [],
+                "I_payment reminder_I": [],
                 "send package": [],
+                "I_send package_I": [],
                 "package delivered": [],
-                "failed delivery": []
+                "I_package delivered_I": [],
+                "failed delivery": [],
+                "I_failed delivery_I": [],
+                "place order": [],
+                "create package": []
             },
             "marking": {
                 "executed": [],

@@ -1,18 +1,17 @@
 import fs from "fs";
 import { EntityRels, EventKnowledgeGraph, EventNode, isEntityRels, ModelEntities, ModelRelations } from "./types";
 import { safeAdd } from "./src/utility";
-import { aggregateCorrelations, discover, findRelationClosures, makeOCLogFromClosure } from "./src/ocDiscovery";
+import { aggregateCorrelations, discover, findRelationClosures } from "./src/ocDiscovery";
 import { findCardinalities, findTransitiveCardinalities } from "./src/processMining";
 import { isDerived } from "./src/ekg";
 import { writeSerializedGraph } from "./src/fsInteraction";
 import init from "./init";
-import { OCReplay } from "./src/objectCentric";
 
 init();
 
-const include_entities = ['orders', 'items', 'packages', 'root', 'OI', 'OP', 'IP'];
-const model_entities_derived = ['OI', 'OP', 'IP', 'root'];
-const subprocess_entities = ['items', 'orders', 'packages'];
+const include_entities = ['orders', 'items', 'packages', 'OI', 'OP', 'IP'];
+const model_entities_derived = ['OI', 'OP', 'IP'];
+const subprocess_entities = ['items'];
 
 const items_activities = [
     'item out of stock',
@@ -22,19 +21,17 @@ const items_activities = [
 
 const model_entities: ModelEntities = {
     "orders": {
-        dbDoc: "order",
+        dbDoc: {},
         idField: "",
-        subprocessInitializer: "place order"
     },
     "packages": {
-        dbDoc: "creates",
+        dbDoc: {},
         idField: "",
-        subprocessInitializer: "create package"
     },
     "items": {
-        dbDoc: "",
+        dbDoc: {},
         idField: "",
-        subprocessInitializer: "create item",
+        subprocessInitializer: "create item"   // TODO: Update!
     },
 };
 
@@ -44,7 +41,7 @@ const model_relations: ModelRelations = [
     { derivedEntityType: 'IP', nt1: 'items', nt2: 'packages' }
 ];
 
-const actToSpawnItems = "confirm order";
+const actToSpawnItems = "place order";
 
 const fp = "./sample_logs/order-management.json";
 
@@ -114,19 +111,7 @@ const insertSpawnNode = (eventId: string, spawnedId: string, timestamp: Date) =>
     }
 }
 
-const spawnOrderEvents = new Set<any>();
-const spawnPackageEvents = new Set<any>();
-
 for (const event of json.events) {
-    // Handle root events later
-    if (event.type === "place order") {
-        spawnOrderEvents.add(event);
-        continue;
-    }
-    if (event.type === "create package") {
-        spawnPackageEvents.add(event);
-        continue;
-    }
     const eventNode: EventNode = { eventId: event.id, activityName: event.type, spawnedId: "", timestamp: new Date(event.time) }
     if (!ekg.eventNodes[event.id]) ekg.eventNodes[event.id] = eventNode;
     if (!ekg.correlations[event.id]) {
@@ -180,70 +165,21 @@ for (const modelRelation of model_relations) {
     }
 }
 
-
-let rootId = 0;
-
-// Insert one root entity per closure
-for (const closure of findRelationClosures(ekg)) {
-    const objectId = "root" + rootId++;
-    const entityType = "root";
-
-    if (!entityByType[entityType]) entityByType[entityType] = new Set();
-    entityByType[entityType].add(objectId);
-    invCorrelations[objectId] = [];
-    if (!ekg.entityNodes[objectId]) ekg.entityNodes[objectId] = { entityId: objectId, entityType, rawId: objectId };
-    if (!ekg.entityRels[objectId]) ekg.entityRels[objectId] = new Set();
-    if (!ekg.directlyFollows[objectId]) ekg.directlyFollows[objectId] = [];
-
-    ekg.entityRels[objectId] = new Set();
-
-    const handleSpawnEvents = (spawnEvents: Set<any>, entityTypeToSpawn: string) => {
-        for (const event of spawnEvents) {
-
-            const spawns = event.relationships.filter((related: any) => related.qualifier === model_entities[entityTypeToSpawn].dbDoc);
-            if (spawns.length !== 1) {
-                console.log(event);
-                throw new Error("Too many spawns to handle!")
-            }
-            const spawnedId = spawns[0].objectId;
-            if (!closure.has(spawnedId)) {
-                continue;
-            }
-            const eventNode: EventNode = { eventId: event.id, activityName: event.type, spawnedId, timestamp: new Date(event.time) }
-            if (!ekg.eventNodes[event.id]) ekg.eventNodes[event.id] = eventNode;
-            if (!ekg.correlations[event.id]) {
-                ekg.correlations[event.id] = {};
-                for (const entityType of include_entities) {
-                    ekg.correlations[event.id][entityType] = new Set();
-                }
-            }
-            ekg.entityRels[objectId].add(spawnedId);
-            ekg.entityRels[spawnedId].add(objectId);
-            invCorrelations[objectId].push(eventNode);
-            ekg.correlations[event.id][entityType].add(objectId);
-        }
-    }
-
-    handleSpawnEvents(spawnOrderEvents, "orders");
-    handleSpawnEvents(spawnPackageEvents, "packages");
-}
-
 for (const entityId in invCorrelations) {
     if (isDerived(entityId, ekg.entityNodes, model_entities)) {
         ekg.derivedDFs[entityId] = invCorrelations[entityId].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     } else {
         ekg.directlyFollows[entityId] = invCorrelations[entityId].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-
     }
 }
+
+
+const closures = findRelationClosures(ekg);
+
+const cards = findTransitiveCardinalities(ekg, closures);
+
+console.log(aggregateCorrelations(ekg));
 
 const graph = discover(ekg, subprocess_entities, model_entities, model_entities_derived);
 
 writeSerializedGraph(graph, "order-management-model");
-
-const closures = findRelationClosures(ekg);
-const interFaceOCLog = makeOCLogFromClosure(closures, ekg, model_entities, subprocess_entities);
-
-console.log(`
-        Accepting traces (closure log): ${OCReplay(interFaceOCLog, graph, model_entities)} / ${Object.keys(interFaceOCLog.traces).length}
-    `);
