@@ -1,5 +1,6 @@
 {
     "events": [
+        "create item",
         "place order",
         "create package"
     ],
@@ -8,24 +9,37 @@
     "interfaceToEvent": {},
     "interfaceMap": {},
     "conditionsFor": {
-        "place order": [],
+        "create item": [],
+        "place order": [
+            "create item"
+        ],
         "create package": [
             "place order"
         ]
     },
     "excludesTo": {
-        "place order": [],
+        "create item": [],
+        "place order": [
+            "place order"
+        ],
         "create package": []
     },
     "includesTo": {
+        "create item": [
+            "place order"
+        ],
         "place order": [],
         "create package": []
     },
     "milestonesFor": {
+        "create item": [],
         "place order": [],
         "create package": []
     },
     "responseTo": {
+        "create item": [
+            "place order"
+        ],
         "place order": [
             "create package"
         ],
@@ -35,6 +49,7 @@
         "executed": [],
         "pending": [],
         "included": [
+            "create item",
             "place order",
             "create package"
         ]
@@ -42,25 +57,21 @@
     "spawns": {
         "place order": {
             "events": [
-                "create item",
                 "confirm order",
                 "pay order",
                 "payment reminder"
             ],
             "eventInterfaces": [
-                "I_create item_I",
                 "I_confirm order_I",
                 "I_pay order_I",
                 "I_payment reminder_I"
             ],
             "eventToInterface": {
-                "create item": "I_create item_I",
                 "confirm order": "I_confirm order_I",
                 "pay order": "I_pay order_I",
                 "payment reminder": "I_payment reminder_I"
             },
             "interfaceToEvent": {
-                "I_create item_I": "create item",
                 "I_confirm order_I": "confirm order",
                 "I_pay order_I": "pay order",
                 "I_payment reminder_I": "payment reminder"
@@ -68,11 +79,7 @@
             "conditionsFor": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
-                "confirm order": [
-                    "create item"
-                ],
+                "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [
                     "confirm order"
@@ -92,17 +99,15 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "excludesTo": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [
-                    "confirm order",
-                    "create item"
+                    "confirm order"
                 ],
                 "I_confirm order_I": [],
                 "pay order": [
@@ -122,14 +127,13 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "includesTo": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -146,14 +150,13 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "milestonesFor": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -170,16 +173,13 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "responseTo": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [
-                    "confirm order"
-                ],
-                "I_create item_I": [],
                 "confirm order": [
                     "pay order"
                 ],
@@ -200,6 +200,7 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
@@ -207,7 +208,6 @@
                 "executed": [],
                 "pending": [],
                 "included": [
-                    "create item",
                     "confirm order",
                     "pay order",
                     "payment reminder"
@@ -239,8 +239,6 @@
             "conditionsFor": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -251,9 +249,7 @@
                 "I_reorder item_I": [],
                 "payment reminder": [],
                 "I_payment reminder_I": [],
-                "send package": [
-                    "pick item"
-                ],
+                "send package": [],
                 "I_send package_I": [],
                 "package delivered": [
                     "send package"
@@ -263,14 +259,13 @@
                     "send package"
                 ],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "excludesTo": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -292,14 +287,13 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "includesTo": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -316,14 +310,13 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "milestonesFor": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -340,14 +333,13 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "responseTo": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -368,6 +360,7 @@
                     "package delivered"
                 ],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
@@ -406,8 +399,6 @@
             "conditionsFor": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -426,6 +417,7 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
@@ -434,8 +426,6 @@
                     "pick item"
                 ],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -456,14 +446,13 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "includesTo": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -480,14 +469,13 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "milestonesFor": {
                 "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -504,17 +492,13 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },
             "responseTo": {
-                "pick item": [
-                    "send package",
-                    "package delivered"
-                ],
+                "pick item": [],
                 "I_pick item_I": [],
-                "create item": [],
-                "I_create item_I": [],
                 "confirm order": [],
                 "I_confirm order_I": [],
                 "pay order": [],
@@ -535,6 +519,7 @@
                 "I_package delivered_I": [],
                 "failed delivery": [],
                 "I_failed delivery_I": [],
+                "create item": [],
                 "place order": [],
                 "create package": []
             },

@@ -10,7 +10,7 @@ export type AlignAction = "consume" | "model-skip" | "trace-skip";
 export type CostFun = (action: AlignAction, target: Event) => number;
 export type Alignment = { cost: number; trace: Trace };
 
-export type RelationString = "condition" | "response" | "milestone" | "include" | "exclude"
+export type RelationString = "conditionsFor" | "responseTo" | "includesTo" | "excludesTo" | "milestonesFor"
 
 export type DCRSolutionsImportModel = {
     title: string,

@@ -1,4 +1,4 @@
-import { EventKnowledgeGraph, LogAbstraction, ModelEntities, OCDCRGraph, Event, DCRObject, EventMap, Activity, EntityType, EventLog, EventNode, OCTrace, OCEventLog, Trace } from "../types";
+import { EventKnowledgeGraph, LogAbstraction, ModelEntities, OCDCRGraph, Event, DCRObject, EventMap, Activity, EntityType, EventLog, EventNode, OCTrace, OCEventLog, Trace, DCRGraph, RelationString } from "../types";
 import { DCRSize, copyEventMap, copySet, flipEventMap, timer } from "./utility";
 
 const eventToInterface = (event: Event) => "I_" + event + "_I";
@@ -93,6 +93,24 @@ export const logsForDerivedEntityTypes = (ekg: EventKnowledgeGraph, derivedEntit
 
     const getEntityType = (entityId: string): string => {
         return ekg.entityNodes[entityId].entityType;
+    }
+
+    if (ekg.entityTypes.has("root")) {
+        retval["root"] = {
+            events: new Set(),
+            traces: {}
+        }
+
+        for (const entityId in ekg.directlyFollows) {
+            const type = getEntityType(entityId);
+            if (type !== "root") continue;
+            const log = retval[type];
+            const trace = ekg.directlyFollows[entityId].map(eventNode => eventNode.activityName);
+            log.traces[entityId] = trace;
+            for (const activity of trace) {
+                log.events.add(activity);
+            }
+        }
     }
 
     for (const entityId in ekg.derivedDFs) {
@@ -433,8 +451,11 @@ const filterBasedOnEkg = (
     graph: OCDCRGraph,
     aggCorr: { [activity: Activity]: Set<EntityType> },
     derivedEntityTypes: Array<string>,
+    model_entities: ModelEntities,
     onlyDerived: boolean = false
 ): OCDCRGraph => {
+    const { getSubProcess } = initializeGetSubProcess(aggCorr, model_entities);
+
     const derivedEntitySet = new Set(derivedEntityTypes);
     const shareEntityType = (e1: Activity, e2: Activity): boolean => {
         const intersection = copySet(aggCorr[e1]).intersect(aggCorr[e2]);
@@ -444,7 +465,8 @@ const filterBasedOnEkg = (
     const filterRelation = (rel: EventMap) => {
         for (const e1 in rel) {
             for (const e2 of rel[e1]) {
-                if (!shareEntityType(e1, e2)) {
+                const e1Subprocess = getSubProcess(e1);
+                if ((e1Subprocess !== "" && e1Subprocess !== getSubProcess(e2)) || !shareEntityType(e1, e2)) {
                     rel[e1].delete(e2)
                 };
             }
@@ -470,6 +492,7 @@ const filterBasedOnEkg = (
 export const DisCoverOCDcrGraph = (ekg: EventKnowledgeGraph, derivedEntityTypes: Array<string>, model_entities: ModelEntities, onlyDerived: boolean = false): OCDCRGraph => {
 
     const logs = logsForDerivedEntityTypes(ekg, derivedEntityTypes);
+
     const emptyAbstraction: LogAbstraction = {
         events: new Set(),
         traces: {},
@@ -486,7 +509,7 @@ export const DisCoverOCDcrGraph = (ekg: EventKnowledgeGraph, derivedEntityTypes:
         return abstractionUnion(accAbs, abs)
     }, emptyAbstraction);
 
-    return filterBasedOnEkg(mineOCDCR(bigAbs, ekg, model_entities, true), aggregateCorrelations(ekg), derivedEntityTypes, onlyDerived);
+    return filterBasedOnEkg(mineOCDCR(bigAbs, ekg, model_entities, true), aggregateCorrelations(ekg), derivedEntityTypes, model_entities, onlyDerived);
 }
 
 export const findRelationClosures = (ekg: EventKnowledgeGraph): Array<Set<string>> => {
@@ -542,9 +565,8 @@ export const makeOCLogFromClosure = (closures: Array<Set<string>>, ekg: EventKno
     for (const closure of closures) {
         let trace: OCTrace<{ id: string, timestamp: Date }> = [];
         for (const entity of closure) {
-            const dfs = ekg.entityNodes[entity].entityType === "root" ? ekg.derivedDFs : ekg.directlyFollows;
             const isSubProcess = subprocessEntities.includes(ekg.entityNodes[entity].entityType);
-            trace = trace.concat(dfs[entity].map(event => {
+            trace = trace.concat(ekg.directlyFollows[entity].map(event => {
                 return ({
                     activity: event.activityName,
                     attr: {
@@ -613,8 +635,6 @@ export const findConditionsResponses = (log: OCEventLog<{ id: string }>, getSubP
 
     const subProcessTraces: { [traceId: string]: OCTrace<{ id: string }> } = Object.keys(log.traces).map(traceId => ({ [traceId]: log.traces[traceId].filter(event => event.attr.id !== "") })).reduce((acc, cum) => ({ ...acc, ...cum }))
     const subProcessActivities = new Set(Object.keys(subProcessTraces).flatMap(traceId => subProcessTraces[traceId].map(event => event.activity))).difference(initializers);
-
-    console.log(subProcessActivities)
 
     const retval: {
         conditions: EventMap,
@@ -692,6 +712,23 @@ export const discover = (graph: EventKnowledgeGraph, subprocess_entities: Array<
 
     const model = DisCoverOCDcrGraph(graph, model_entities_derived, model_entities);
     console.log("DONE! Took " + t.stop() / 1000 + " seconds");
+    /*
+        if (model_entities["root"]) {
+            const rootEvents = new Set(Object.values(model_entities).map(({ subprocessInitializer }) => subprocessInitializer).filter(event => event !== undefined) as string[]);
+            model.events.union(rootEvents);
+            model.marking.included.union(rootEvents);
+            const initRel = (rel: RelationString) => {
+                for (const event of rootEvents) {
+                    model[rel][event] = new Set();
+                }
+            }
+    
+            initRel("conditionsFor");
+            initRel("responseTo");
+            initRel("includesTo");
+            initRel("excludesTo");
+            initRel("milestonesFor");
+        }*/
 
     console.log("Finding closures...");
     t = timer();

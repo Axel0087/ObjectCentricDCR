@@ -11,7 +11,7 @@ import { OCReplay } from "./src/objectCentric";
 init();
 
 const include_entities = ['orders', 'items', 'packages', 'root', 'OI', 'OP', 'IP'];
-const model_entities_derived = ['OI', 'OP', 'IP', 'root'];
+const model_entities_derived = ['OI', 'OP', 'IP'];
 const subprocess_entities = ['items', 'orders', 'packages'];
 
 const items_activities = [
@@ -21,6 +21,10 @@ const items_activities = [
 ]
 
 const model_entities: ModelEntities = {
+    "root": {
+        dbDoc: "",
+        idField: "",
+    },
     "orders": {
         dbDoc: "order",
         idField: "",
@@ -32,7 +36,7 @@ const model_entities: ModelEntities = {
         subprocessInitializer: "create package"
     },
     "items": {
-        dbDoc: "",
+        dbDoc: "creates",
         idField: "",
         subprocessInitializer: "create item",
     },
@@ -44,7 +48,7 @@ const model_relations: ModelRelations = [
     { derivedEntityType: 'IP', nt1: 'items', nt2: 'packages' }
 ];
 
-const actToSpawnItems = "confirm order";
+const actToSpawnItems = "place order";
 
 const fp = "./sample_logs/order-management.json";
 
@@ -52,7 +56,7 @@ const json = JSON.parse(fs.readFileSync(fp).toString());
 
 const ekg: EventKnowledgeGraph = {
     activities: new Set(),
-    entityTypes: new Set(),
+    entityTypes: new Set(["root"]),
     eventNodes: {},
     entityNodes: {},
     correlations: {},
@@ -98,20 +102,17 @@ for (const object of json.objects) {
     }
 }
 
+const spawnItemEvents = new Set<any>();
+
 const insertSpawnNode = (eventId: string, spawnedId: string, timestamp: Date) => {
     const id = `ci_${eventId}_${spawnedId}`;
-    const eventNode = { eventId: id, activityName: "create item", spawnedId, timestamp: new Date(timestamp.getTime() - 1) }
-    if (!ekg.eventNodes[id]) ekg.eventNodes[id] = eventNode;
-    if (!ekg.correlations[id]) {
-        ekg.correlations[id] = {}
-        for (const entityType of include_entities) {
-            ekg.correlations[id][entityType] = new Set();
-        }
+    const event = {
+        id, type: "create item", time: new Date(timestamp.getTime() - 1), relationships: [{
+            qualifier: "creates",
+            objectId: spawnedId
+        }]
     }
-    ekg.correlations[id]["orders"] = ekg.correlations[id]["orders"].union(ekg.correlations[eventId]["orders"]);
-    for (const orderId of ekg.correlations[eventId]["orders"]) {
-        invCorrelations[orderId].push(eventNode);
-    }
+    spawnItemEvents.add(event);
 }
 
 const spawnOrderEvents = new Set<any>();
@@ -120,6 +121,13 @@ const spawnPackageEvents = new Set<any>();
 for (const event of json.events) {
     // Handle root events later
     if (event.type === "place order") {
+        if (event.type === actToSpawnItems) {
+            event.relationships.forEach((related: any) => {
+                if (related.qualifier === "item") {
+                    insertSpawnNode(event.id, related.objectId, new Date(event.time));
+                }
+            });
+        }
         spawnOrderEvents.add(event);
         continue;
     }
@@ -226,6 +234,7 @@ for (const closure of findRelationClosures(ekg)) {
 
     handleSpawnEvents(spawnOrderEvents, "orders");
     handleSpawnEvents(spawnPackageEvents, "packages");
+    handleSpawnEvents(spawnItemEvents, "items");
 }
 
 for (const entityId in invCorrelations) {
