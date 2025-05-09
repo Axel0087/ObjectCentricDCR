@@ -19,6 +19,7 @@
   "scripts": {
     "start": "tsc && node --max-old-space-size=16384 ./build/main.js",
     "ocel": "tsc && node --max-old-space-size=16384 ./build/ocel.js",
+    "logistics": "tsc && node ./build/logistics.js",
     "items-sp": "tsc && node --max-old-space-size=16384 ./build/ocel-items-sp.js",
     "evaluate": "tsc && node --max-old-space-size=16384 ./build/evaluation/evaluate.js",
     "simulate": "tsc && node --max-old-space-size=16384 ./build/evaluation/simulate.js"
